@@ -34,7 +34,7 @@ public class Launcher extends JFrame
       
       _loginPanel = new LoginPanel(_client);
       
-      setContentPane(getLoginPanel());
+      setContentPane(_loginPanel);
       setResizable(false);
       setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       
@@ -60,14 +60,6 @@ public class Launcher extends JFrame
       tLauncher.setVisible(true);
    }
 
-   /**
-    * @return the loginPanel
-    */
-   public LoginPanel getLoginPanel()
-   {
-      return _loginPanel;
-   }
-   
    /**
     * Called once our login is accepted by the server
     */

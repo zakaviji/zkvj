@@ -1,4 +1,4 @@
-package com.zkvj.conjurers.display;
+package com.zkvj.conjurers.client.game;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -8,11 +8,12 @@ import com.zkvj.conjurers.core.GameData;
 import com.zkvj.utils.BufferedImageComponent;
 
 /**
- * Class responsible for drawing the area which displays a .
+ * Class responsible for drawing the area which displays a close-up image of the currently
+ * selected card.
  */
-public class HistoryArea extends BufferedImageComponent
+public class CardDetailsArea extends BufferedImageComponent
 {
-   private static final long serialVersionUID = -7764730191876210671L;
+   private static final long serialVersionUID = -740993523942217182L;
 
    /** game data */
    private final GameData _data;
@@ -21,7 +22,7 @@ public class HistoryArea extends BufferedImageComponent
     * Constructor
     * @param aData - the game data
     */
-   public HistoryArea(GameData aData)
+   public CardDetailsArea(GameData aData)
    {
       _data = aData;
    }
@@ -38,7 +39,15 @@ public class HistoryArea extends BufferedImageComponent
       if(null != _data)
       {
          aG.setColor(Color.WHITE);
-         aG.drawString("History", 20, 40);
+
+         if(null != _data.getFocusCard())
+         {
+            aG.drawString(_data.getFocusCard().getName(), 20, 40);
+         }
+         else
+         {
+            aG.drawString("No card selected", 20, 40);
+         }
       }
       else
       {

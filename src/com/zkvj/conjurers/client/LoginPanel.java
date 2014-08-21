@@ -60,7 +60,6 @@ public class LoginPanel extends JPanel
       
       this.setPreferredSize(new Dimension(Constants.kLOGIN_WIDTH,
                                           Constants.kLOGIN_HEIGHT));
-      this.setFocusable(true);
       this.setBackground(Constants.kBACKGROUND_COLOR);
       
       initComponents();

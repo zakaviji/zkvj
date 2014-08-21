@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import com.zkvj.conjurers.core.ClientState;
 import com.zkvj.conjurers.core.Message;
 import com.zkvj.conjurers.core.Message.Type;
 
@@ -24,6 +25,9 @@ public class Client
    
    /** thread on which we listen to server */
    private ClientThread _thread;
+   
+   /** current state of this client */
+   private ClientState _state = ClientState.eLOGIN;
    
    /**
     * Constructor
@@ -164,6 +168,7 @@ public class Client
                
                if(Type.eLOGIN_ACCEPTED == tMessage._type)
                {
+                  _state = ClientState.eDESKTOP;
                   _launcher.loginSuccessful();
                }
             }

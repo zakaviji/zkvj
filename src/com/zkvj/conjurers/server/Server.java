@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import com.zkvj.conjurers.core.ClientState;
 import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.Message;
 import com.zkvj.conjurers.core.Message.Type;
@@ -16,16 +17,6 @@ import com.zkvj.conjurers.core.Message.Type;
  */
 public class Server
 {
-   /**
-    * Clients connected to the server shall be in one of these states
-    */
-   private enum ClientState
-   {
-      eLOGIN,
-      eDESKTOP,
-      eGAME,
-   }
-   
    /** keep track of the next available client ID */
    private static int sNextUniqueID = 0;
    

@@ -1,4 +1,4 @@
-package com.zkvj.conjurers.display;
+package com.zkvj.conjurers.client.game;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

@@ -3,7 +3,7 @@ package com.zkvj.conjurers.core;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import com.zkvj.conjurers.display.GamePanel;
+import com.zkvj.conjurers.client.game.GamePanel;
 import com.zkvj.utils.FrameUtil;
 
 /**

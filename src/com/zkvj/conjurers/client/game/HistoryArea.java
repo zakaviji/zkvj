@@ -1,4 +1,4 @@
-package com.zkvj.conjurers.display;
+package com.zkvj.conjurers.client.game;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -10,10 +10,10 @@ import com.zkvj.utils.BufferedImageComponent;
 /**
  * Class responsible for drawing the area which displays a .
  */
-public class HandDisplayArea extends BufferedImageComponent
+public class HistoryArea extends BufferedImageComponent
 {
-   private static final long serialVersionUID = 8520685473956498948L;
-   
+   private static final long serialVersionUID = -7764730191876210671L;
+
    /** game data */
    private final GameData _data;
    
@@ -21,7 +21,7 @@ public class HandDisplayArea extends BufferedImageComponent
     * Constructor
     * @param aData - the game data
     */
-   public HandDisplayArea(GameData aData)
+   public HistoryArea(GameData aData)
    {
       _data = aData;
    }
@@ -38,8 +38,7 @@ public class HandDisplayArea extends BufferedImageComponent
       if(null != _data)
       {
          aG.setColor(Color.WHITE);
-         
-         aG.drawString("Hand size: " + _data.getPlayer().getHand().size(), 20, 40);
+         aG.drawString("History", 20, 40);
       }
       else
       {
