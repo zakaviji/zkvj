@@ -3,6 +3,7 @@ package com.zkvj.conjurers.client;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.JLabel;
@@ -11,6 +12,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import com.zkvj.conjurers.core.Constants;
+import com.zkvj.conjurers.core.Message;
 
 public class LoginPanel extends JPanel
 {
@@ -18,14 +20,54 @@ public class LoginPanel extends JPanel
    
    private final JTextField _username = new JTextField(20);
    private JPasswordField _password = new JPasswordField(20);
-
-   public LoginPanel()
+   
+   private Client _client;
+   
+   /** Key listener */
+   private final KeyListener _keyListener = new KeyListener()
    {
+      @Override
+      public void keyPressed(KeyEvent aEvent)
+      {
+         Object tSource = aEvent.getSource();
+         int aKey = aEvent.getKeyCode();
+         
+         if((tSource == _username || tSource == _password) &&
+             KeyEvent.VK_ENTER == aKey)
+         {
+            String tUsername = _username.getText().trim();
+            char[] tPassword = _password.getPassword();
+            
+            Message tLoginRequest = new Message();
+            tLoginRequest._type = Message.Type.eLOGIN_REQUEST;
+            tLoginRequest._userName = tUsername;
+            tLoginRequest._password = String.valueOf(tPassword);
+            
+            _client.sendMessage(tLoginRequest);
+         }
+      }
+
+      @Override
+      public void keyTyped(KeyEvent aEvent){}
+
+      @Override
+      public void keyReleased(KeyEvent aEvent){}
+   };
+
+   public LoginPanel(Client aClient)
+   {
+      _client = aClient;
+      
       this.setPreferredSize(new Dimension(Constants.kLOGIN_WIDTH,
                                           Constants.kLOGIN_HEIGHT));
       this.setFocusable(true);
       this.setBackground(Constants.kBACKGROUND_COLOR);
       
+      initComponents();
+   }
+   
+   private void initComponents()
+   {
       this.setLayout(new GridBagLayout());
       
       GridBagConstraints tConstraints = new GridBagConstraints();
@@ -52,15 +94,11 @@ public class LoginPanel extends JPanel
       tConstraints.gridy = 1;
       tConstraints.gridwidth = 2;
       this.add(_password, tConstraints);
-   }
-   
-   @Override
-   public synchronized void addKeyListener(KeyListener aListener)
-   {
-      super.addKeyListener(aListener);
       
-      _username.addKeyListener(aListener);
-      _password.addKeyListener(aListener);
+      _username.addKeyListener(_keyListener);
+      _password.addKeyListener(_keyListener);
+      
+      _username.requestFocus();
    }
    
    /**

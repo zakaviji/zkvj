@@ -1,65 +1,52 @@
 package com.zkvj.conjurers.client;
 
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 
+import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.Game;
-import com.zkvj.utils.FrameUtil;
 
-public class Launcher
+public class Launcher extends JFrame
 {
-   /** login panel, shown first */
-   private final LoginPanel _loginPanel =  new LoginPanel();
+   private static final long serialVersionUID = 1337850054206041167L;
+
+   private final LoginPanel _loginPanel;
    
-   /** the JFrame */
-   private JFrame _frame = null;
-   
-   /** game */
+   private Client _client = null;
    private Game _game = null;
-   
-   /** Key listener */
-   private final KeyListener _keyListener = new KeyListener()
-   {
-      @Override
-      public void keyPressed(KeyEvent aEvent)
-      {
-         switch(aEvent.getKeyCode())
-         {
-            case KeyEvent.VK_ENTER:
-               _game = new Game();
-               _frame.setContentPane(_game.getGamePanel());
-               _frame.pack();
-               break;
-            default:
-               break;
-         }
-      }
-
-      @Override
-      public void keyTyped(KeyEvent aEvent){}
-
-      @Override
-      public void keyReleased(KeyEvent aEvent){}
-   };
    
    /**
     * Constructor
     */
    public Launcher()
    {
-      _loginPanel.addKeyListener(_keyListener);
+      super("Conjurers");
       
-      SwingUtilities.invokeLater(new Runnable()
+      _client = new Client(Constants.kHOST_NAME, Constants.kPORT_NUMBER, this);
+      
+      if(!_client.start())
       {
-         @Override
-         public void run()
-         {
-            _frame = FrameUtil.openInJFrame(getLoginPanel(), "Conjurers");
-            _frame.setVisible(true);
-         }
+         System.err.println("Launcher: failed to connect to server, exiting");
+         System.exit(1);
+      }
+      
+      _loginPanel = new LoginPanel(_client);
+      
+      setContentPane(getLoginPanel());
+      setResizable(false);
+      setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      
+      addWindowListener(new WindowAdapter()
+      {
+          @Override
+          public void windowClosing(WindowEvent aEvent)
+          {
+              System.out.println("Launcher: detected window close event; cleaning up and exiting");
+              _client.disconnect();
+              aEvent.getWindow().dispose();
+          }
       });
    }
 
@@ -68,17 +55,9 @@ public class Launcher
     */
    public static void main(String[] args)
    {
-      new Launcher();
-//      SwingUtilities.invokeLater(new Runnable()
-//      {
-//         @Override
-//         public void run()
-//         {
-//            _frame = FrameUtil.openInJFrame((new Launcher()).getLoginPanel(),
-//                                                   "Conjurers");
-//            tFrame.setVisible(true);
-//         }
-//      });
+      Launcher tLauncher = new Launcher();
+      tLauncher.pack();
+      tLauncher.setVisible(true);
    }
 
    /**
@@ -87,5 +66,15 @@ public class Launcher
    public LoginPanel getLoginPanel()
    {
       return _loginPanel;
+   }
+   
+   /**
+    * Called once our login is accepted by the server
+    */
+   protected void loginSuccessful()
+   {
+      _game = new Game();
+      this.setContentPane(_game.getGamePanel());
+      this.pack();
    }
 }
