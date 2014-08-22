@@ -141,7 +141,7 @@ public class Client
       
       //send a logout message
       Message tLogout = new Message();
-      tLogout._type = Type.eLOGOUT;
+      tLogout.type = Type.eLOGOUT;
       sendMessage(tLogout);
       
       try
@@ -182,26 +182,30 @@ public class Client
       {
          System.out.println("ClientThread: received message: " + aMsg.toString());
          
-         if(Type.eLOGIN_ACCEPTED == aMsg._type)
+         if(Type.eLOGIN_ACCEPTED == aMsg.type)
          {
             //keep track of our user name and client ID
-            _clientID = aMsg._clientID;
-            _userName = aMsg._userName;
+            _clientID = aMsg.clientID;
+            _userName = aMsg.userName;
             
             //advance client state
             _state = ClientState.eDESKTOP;
             _launcher.showDesktop();
          }
-         else if(Type.eDESKTOP_CHAT == aMsg._type)
+         else if(Type.eDESKTOP_CHAT == aMsg.type)
          {
             for(ChatMsgListener tListener : _desktopChatListeners)
             {
-               tListener.handleChatMessage(aMsg._chatMessage);
+               tListener.handleChatMessage(aMsg.chatMessage);
             }
+         }
+         else if(Type.eUSER_LIST == aMsg.type)
+         {
+            //TODO
          }
          else
          {
-            System.out.println("Client: message type " + aMsg._type + "not handled");
+            System.out.println("Client: message type " + aMsg.type + "not handled");
          }
       }
       else
@@ -215,8 +219,8 @@ public class Client
     */
    public void sendMessage(Message aMsg)
    {
-      aMsg._clientID = _clientID;
-      aMsg._userName = _userName;
+      aMsg.clientID = _clientID;
+      aMsg.userName = _userName;
       
       System.out.println("Client: sending message: " + aMsg.toString());
       

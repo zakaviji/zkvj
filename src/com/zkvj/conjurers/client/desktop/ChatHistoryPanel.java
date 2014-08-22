@@ -46,14 +46,14 @@ public class ChatHistoryPanel extends JPanel
             
             if(_desktopMode)
             {
-               tMessage._type = Type.eDESKTOP_CHAT;
+               tMessage.type = Type.eDESKTOP_CHAT;
             }
             else
             {
-               tMessage._type = Type.eGAME_CHAT;
+               tMessage.type = Type.eGAME_CHAT;
             }
             
-            tMessage._chatMessage = tText;
+            tMessage.chatMessage = tText;
             _client.sendMessage(tMessage);
          }
       }

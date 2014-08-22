@@ -50,6 +50,7 @@ public class Launcher extends JFrame
       }
       
       _loginPanel = new LoginPanel(_client);
+      _desktopPanel = new DesktopPanel(_client);
       
       setContentPane(_loginPanel);
       setResizable(false);
@@ -73,11 +74,6 @@ public class Launcher extends JFrame
     */
    protected void showDesktop()
    {
-      if(null == _desktopPanel)
-      {
-         _desktopPanel = new DesktopPanel(_client);
-      }
-      
       this.setContentPane(_desktopPanel);
       this.pack();
    }

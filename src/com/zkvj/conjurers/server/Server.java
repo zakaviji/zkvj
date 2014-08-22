@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.zkvj.conjurers.core.ClientState;
 import com.zkvj.conjurers.core.Constants;
@@ -64,7 +65,10 @@ public class Server
             }
             
             ServerThread tThread = new ServerThread(tSocket);
-            _threads.add(tThread);
+            synchronized (_threads)
+            {
+               _threads.add(tThread);
+            }
             tThread.start();
          }
          
@@ -73,17 +77,20 @@ public class Server
          {
             tServerSocket.close();
             
-            for(ServerThread tThread : _threads)
+            synchronized (_threads)
             {
-               try
+               for(ServerThread tThread : _threads)
                {
-                  tThread._inStream.close();
-                  tThread._outStream.close();
-                  tThread._socket.close();
-               }
-               catch(IOException aEx)
-               {
-                  System.err.println("Server: Exception closing client thread: " + aEx);
+                  try
+                  {
+                     tThread._inStream.close();
+                     tThread._outStream.close();
+                     tThread._socket.close();
+                  }
+                  catch(IOException aEx)
+                  {
+                     System.err.println("Server: Exception closing client thread: " + aEx);
+                  }
                }
             }
          }
@@ -115,20 +122,23 @@ public class Server
     * Remove a client who has logged off.
     * @param aID - client ID
     */
-   synchronized private void remove(int aID)
+   private void remove(int aID)
    {
-      for(ServerThread tThread : _threads)
+      synchronized (_threads)
       {
-         if(tThread._clientID == aID)
+         for(ServerThread tThread : _threads)
          {
-            _threads.remove(tThread);
-            return;
+            if(tThread._clientID == aID)
+            {
+               _threads.remove(tThread);
+               return;
+            }
          }
       }
    }
    
    /**
-    * In case GUI needs to stop the server
+    * In case something outside this class needs to stop the server
     */
    protected void stop()
    {
@@ -172,21 +182,50 @@ public class Server
    }
    
    /**
+    * Sent list of all users to all clients
+    */
+   private void broadcastUserList()
+   {
+      Message tMsg = new Message();
+      tMsg.type = Type.eUSER_LIST;
+      
+      List<String> tUsers = new ArrayList<String>();
+      
+      synchronized (_threads)
+      {
+         for(ServerThread tThread : _threads)
+         {
+            if(ClientState.eLOGIN != tThread._state)
+            {
+               tUsers.add(tThread._userName);
+            }
+         }
+      }
+      
+      tMsg.userList = (String[])tUsers.toArray(new String[tUsers.size()]);
+      
+      broadcastMessage(tMsg);
+   }
+   
+   /**
     * Broadcast a message to all clients
     */
-   private synchronized void broadcastMessage(Message aMsg)
+   private void broadcastMessage(Message aMsg)
    {
-      // loop in reverse order in case we have to remove a client
-      for(int i = _threads.size(); --i >= 0;)
+      synchronized (_threads)
       {
-         ServerThread tThread = _threads.get(i);
-         
-         // if cannot send to client, remove it from the list
-         if(!tThread.sendMessage(aMsg))
+         // loop in reverse order in case we have to remove a client
+         for(int i = _threads.size(); --i >= 0;)
          {
-            _threads.remove(i);
-            System.out.println("Server: disconnected client "
-                  + tThread._userName);
+            ServerThread tThread = _threads.get(i);
+            
+            // if cannot send to client, remove it from the list
+            if(!tThread.sendMessage(aMsg))
+            {
+               _threads.remove(i);
+               System.out.println("Server: disconnected client "
+                     + tThread._userName);
+            }
          }
       }
    }
@@ -259,75 +298,21 @@ public class Server
                break;
             }
             
-            if(null != tMsg)
+            //if logout, break out of while loop
+            if(Type.eLOGOUT == tMsg.type)
             {
-               System.out.println("ServerThread: received message: " + tMsg.toString());
-               
-               //handle logout message regardless of client state
-               if(Type.eLOGOUT == tMsg._type)
-               {
-                  System.out.println("ServerThread: user " + _userName + " has logged out");
-                  break;
-               }
-               
-               switch(_state)
-               {
-                  case eLOGIN:
-                  {
-                     if(Type.eLOGIN_REQUEST == tMsg._type)
-                     {
-                        Message tReply = new Message();
-                        if(authenticateLogin(tMsg._userName, tMsg._password))
-                        {
-                           _userName = tMsg._userName;
-                           _state = ClientState.eDESKTOP;
-                           
-                           tReply._type = Type.eLOGIN_ACCEPTED;
-                           System.out.println("ServerThread: user " + _userName + " logged in successfully");
-                        }
-                        else
-                        {
-                           tReply._type = Type.eLOGIN_REJECTED;
-                           System.out.println("ServerThread: login was rejected");
-                        }
-                        sendMessage(tReply);
-                     }
-                     else
-                     {
-                        System.err.println("ServerThread: error: received message type " + 
-                           tMsg._type + " while in state " + _state);
-                     }
-                     break;
-                  }
-                  case eDESKTOP:
-                  {
-                     if(Type.eDESKTOP_CHAT == tMsg._type)
-                     {
-                        broadcastMessage(tMsg);
-                     }
-                     else
-                     {
-                        System.err.println("ServerThread: error: received message type " + 
-                           tMsg._type + " while in state " + _state);
-                     }
-                     break;
-                  }
-                  case eGAME:
-                  {
-                     break;
-                  }
-                  default:
-                  {
-                     System.err.println("ServerThread: warning: state " + _state + "is not handled");
-                     break;
-                  }
-               }
+               System.out.println("ServerThread: user " + _userName + " has logged out");
+               break;
             }
+            
+            processMessage(tMsg);
          }//end while
          
          //we have disconnected, so remove this thread from list and close
          remove(_clientID);
          close();
+         
+         broadcastUserList();
       }
 
       /**
@@ -362,6 +347,73 @@ public class Server
             System.err.println("ServerThread: exception while trying to close socket: " + aEx);
          }
       }
+      
+      /**
+       * Process a message from the client
+       * @param aMsg
+       */
+      private void processMessage(Message aMsg)
+      {
+         if(null != aMsg)
+         {
+            System.out.println("ServerThread: received message: " + aMsg.toString());
+            
+            switch(_state)
+            {
+               case eLOGIN:
+               {
+                  if(Type.eLOGIN_REQUEST == aMsg.type)
+                  {
+                     Message tReply = new Message();
+                     if(authenticateLogin(aMsg.userName, aMsg.password))
+                     {
+                        _userName = aMsg.userName;
+                        _state = ClientState.eDESKTOP;
+                        
+                        tReply.type = Type.eLOGIN_ACCEPTED;
+                        System.out.println("ServerThread: user " + _userName + " logged in successfully");
+                        
+                        broadcastUserList();
+                     }
+                     else
+                     {
+                        tReply.type = Type.eLOGIN_REJECTED;
+                        System.out.println("ServerThread: login was rejected");
+                     }
+                     sendMessage(tReply);
+                  }
+                  else
+                  {
+                     System.err.println("ServerThread: error: received message type " + 
+                        aMsg.type + " while in state " + _state);
+                  }
+                  break;
+               }
+               case eDESKTOP:
+               {
+                  if(Type.eDESKTOP_CHAT == aMsg.type)
+                  {
+                     broadcastMessage(aMsg);
+                  }
+                  else
+                  {
+                     System.err.println("ServerThread: error: received message type " + 
+                        aMsg.type + " while in state " + _state);
+                  }
+                  break;
+               }
+               case eGAME:
+               {
+                  break;
+               }
+               default:
+               {
+                  System.err.println("ServerThread: warning: state " + _state + "is not handled");
+                  break;
+               }
+            }
+         }
+      }
 
       /**
        * Send message to the client
@@ -374,8 +426,8 @@ public class Server
             return false;
          }
          
-         aMsg._clientID = _clientID;
-         aMsg._userName = _userName;
+         aMsg.clientID = _clientID;
+         aMsg.userName = _userName;
          
          System.out.println("ServerThread: sending message: " + aMsg);
          

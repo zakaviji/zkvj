@@ -3,8 +3,8 @@ package com.zkvj.conjurers.client;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,43 +18,41 @@ public class LoginPanel extends JPanel
 {
    private static final long serialVersionUID = 1792989718696030500L;
    
-   private final JTextField _username = new JTextField(20);
+   private final JTextField _userName = new JTextField(20);
    private JPasswordField _password = new JPasswordField(20);
    
    private Client _client;
    
-   /** Key listener */
-   private final KeyListener _keyListener = new KeyListener()
+   private final ActionListener _actionListener = new ActionListener()
    {
       @Override
-      public void keyPressed(KeyEvent aEvent)
+      public void actionPerformed(ActionEvent aEvent)
       {
          Object tSource = aEvent.getSource();
-         int aKey = aEvent.getKeyCode();
          
-         if((tSource == _username || tSource == _password) &&
-             KeyEvent.VK_ENTER == aKey)
+         if(tSource == _userName || tSource == _password)
          {
-            String tUsername = _username.getText().trim();
+            String tUsername = _userName.getText().trim();
             _client.setUserName(tUsername);
             
             char[] tPassword = _password.getPassword();
             
             Message tLoginRequest = new Message();
-            tLoginRequest._type = Message.Type.eLOGIN_REQUEST;
-            tLoginRequest._password = String.valueOf(tPassword);
+            tLoginRequest.type = Message.Type.eLOGIN_REQUEST;
+            tLoginRequest.password = String.valueOf(tPassword);
             
             _client.sendMessage(tLoginRequest);
+
+            _userName.setText("");
+            _password.setText("");
          }
       }
-
-      @Override
-      public void keyTyped(KeyEvent aEvent){}
-
-      @Override
-      public void keyReleased(KeyEvent aEvent){}
    };
 
+   /**
+    * Constructor
+    * @param aClient
+    */
    public LoginPanel(Client aClient)
    {
       _client = aClient;
@@ -66,6 +64,9 @@ public class LoginPanel extends JPanel
       initComponents();
    }
    
+   /**
+    * Initializes the components of this panel
+    */
    private void initComponents()
    {
       this.setLayout(new GridBagLayout());
@@ -82,7 +83,7 @@ public class LoginPanel extends JPanel
       tConstraints.gridx = 1;
       tConstraints.gridy = 0;
       tConstraints.gridwidth = 2;
-      this.add(_username, tConstraints);
+      this.add(_userName, tConstraints);
 
       JLabel tPasswordLabel = new JLabel("Password: ");
       tConstraints.gridx = 0;
@@ -95,10 +96,10 @@ public class LoginPanel extends JPanel
       tConstraints.gridwidth = 2;
       this.add(_password, tConstraints);
       
-      _username.addKeyListener(_keyListener);
-      _password.addKeyListener(_keyListener);
+      _userName.addActionListener(_actionListener);
+      _password.addActionListener(_actionListener);
       
-      _username.requestFocus();
+      _userName.requestFocus();
    }
    
    /**
@@ -107,7 +108,7 @@ public class LoginPanel extends JPanel
     */
    public String getUsername()
    {
-      return _username.getText().trim();
+      return _userName.getText().trim();
    }
 
    /**
