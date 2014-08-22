@@ -12,6 +12,8 @@ import java.awt.event.MouseMotionListener;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
+import com.zkvj.conjurers.client.Client;
+import com.zkvj.conjurers.client.desktop.ChatHistoryPanel;
 import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.GameData;
 import com.zkvj.utils.BufferedImageComponent;
@@ -19,6 +21,8 @@ import com.zkvj.utils.BufferedImageComponent;
 public class GamePanel extends JLayeredPane
 {
    private static final long serialVersionUID = 3916891242722466815L;
+   
+   private Client _client;
    
    /** game data */
    private final GameData _data;
@@ -30,6 +34,8 @@ public class GamePanel extends JLayeredPane
    private HandDisplayArea _handDisplayArea = null;
    private PlayerDetailsArea _playerArea = null;
    private PlayerDetailsArea _oppArea = null;
+   
+   private ChatHistoryPanel _chatHistoryPanel;
    
    /** mouse listener */
    private final MouseListener _mouseListener = new MouseListener()
@@ -95,8 +101,9 @@ public class GamePanel extends JLayeredPane
     * Constructor
     * @param aData - the game data
     */
-   public GamePanel(GameData aData)
+   public GamePanel(Client aClient, GameData aData)
    {
+      _client = aClient;
       _data = aData;
       
       this.setPreferredSize(new Dimension(Constants.kWIDTH, Constants.kHEIGHT));
@@ -139,11 +146,16 @@ public class GamePanel extends JLayeredPane
       add(_cardDetailsArea, Constants.kINFO_LAYER);
       
       //history area
-      _historyArea = new HistoryArea(_data);
-      _historyArea.setLocation(new Point(tWidth  * 4/5, 0));
-      _historyArea.setSize(new Dimension(tWidth * 1/5, tHeight * 3/4));
-      _historyArea.setBufferedImageSize(_historyArea.getSize());
-      add(_historyArea, Constants.kINFO_LAYER);
+//      _historyArea = new HistoryArea(_data);
+//      _historyArea.setLocation(new Point(tWidth  * 4/5, 0));
+//      _historyArea.setSize(new Dimension(tWidth * 1/5, tHeight * 3/4));
+//      _historyArea.setBufferedImageSize(_historyArea.getSize());
+//      add(_historyArea, Constants.kINFO_LAYER);
+      
+      _chatHistoryPanel = new ChatHistoryPanel(_client, false);
+      _chatHistoryPanel.setLocation(new Point(tWidth  * 4/5, 0));
+      _chatHistoryPanel.setSize(new Dimension(tWidth * 1/5, tHeight * 3/4));
+      add(_chatHistoryPanel, Constants.kINFO_LAYER);
       
       //hand display area
       _handDisplayArea = new HandDisplayArea(_data);

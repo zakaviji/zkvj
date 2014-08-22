@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.zkvj.conjurers.core.ClientState;
 import com.zkvj.conjurers.core.Message;
@@ -11,6 +13,22 @@ import com.zkvj.conjurers.core.Message.Type;
 
 public class Client
 {
+   /**
+    * Listener for chat messages
+    */
+   public static abstract class ChatMsgListener
+   {
+      public abstract void handleChatMessage(String aMsg);
+   }
+   
+   /** list of listeners for desktop chat messages */
+   private final List<ChatMsgListener> _desktopChatListeners = 
+      new ArrayList<ChatMsgListener>();
+   
+   /** list of listeners for game chat messages */
+   private final List<ChatMsgListener> _gameChatListeners = 
+      new ArrayList<ChatMsgListener>();
+   
    /** for I/O */
    private ObjectInputStream _inStream;      // to read from the socket
    private ObjectOutputStream _outStream;    // to write on the socket
@@ -20,6 +38,10 @@ public class Client
    private String _hostName;
    private int _port;
    
+   /** client ID and user name */
+   private int _clientID;
+   private String _userName;
+
    /** handle to launcher to pass back events */
    private final Launcher _launcher;
    
@@ -41,6 +63,38 @@ public class Client
       _launcher = aLauncher;
    }
    
+   /**
+    * Add listener for desktop chat messages from server
+    */
+   public void addDesktopChatListener(ChatMsgListener aListener)
+   {
+      _desktopChatListeners.add(aListener);
+   }
+   
+   /**
+    * Add listener for game chat messages from server
+    */
+   public void addGameChatListener(ChatMsgListener aListener)
+   {
+      _gameChatListeners.add(aListener);
+   }
+   
+   /**
+    * @return the userName
+    */
+   public String getUserName()
+   {
+      return _userName;
+   }
+   
+   /**
+    * @param aUserName the userName to set
+    */
+   public void setUserName(String aUserName)
+   {
+      _userName = aUserName;
+   }
+
    /**
     * Initialize connection with the server
     */
@@ -119,10 +173,51 @@ public class Client
    }
    
    /**
+    * Process incoming message from server
+    * @param aMsg
+    */
+   private void processMessage(Message aMsg)
+   {
+      if(null != aMsg)
+      {
+         System.out.println("ClientThread: received message: " + aMsg.toString());
+         
+         if(Type.eLOGIN_ACCEPTED == aMsg._type)
+         {
+            //keep track of our user name and client ID
+            _clientID = aMsg._clientID;
+            _userName = aMsg._userName;
+            
+            //advance client state
+            _state = ClientState.eDESKTOP;
+            _launcher.showDesktop();
+         }
+         else if(Type.eDESKTOP_CHAT == aMsg._type)
+         {
+            for(ChatMsgListener tListener : _desktopChatListeners)
+            {
+               tListener.handleChatMessage(aMsg._chatMessage);
+            }
+         }
+         else
+         {
+            System.out.println("Client: message type " + aMsg._type + "not handled");
+         }
+      }
+      else
+      {
+         System.err.println("Client: processMessage: given message was null");
+      }
+   }
+   
+   /**
     * To send a message to the server
     */
    public void sendMessage(Message aMsg)
    {
+      aMsg._clientID = _clientID;
+      aMsg._userName = _userName;
+      
       System.out.println("Client: sending message: " + aMsg.toString());
       
       try
@@ -147,11 +242,11 @@ public class Client
       {
          while(_keepListening)
          {
-            Message tMessage = null;
+            Message tMsg = null;
             
             try
             {
-               tMessage = (Message)_inStream.readObject();
+               tMsg = (Message)_inStream.readObject();
             }
             catch(IOException aEx)
             {
@@ -162,16 +257,7 @@ public class Client
                System.err.println("ClientThread: unable to process message from server: " + aEx);
             }
             
-            if(null != tMessage)
-            {
-               System.out.println("ClientThread: received message: " + tMessage._type);
-               
-               if(Type.eLOGIN_ACCEPTED == tMessage._type)
-               {
-                  _state = ClientState.eDESKTOP;
-                  _launcher.loginSuccessful();
-               }
-            }
+            processMessage(tMsg);
          }
       }
    }

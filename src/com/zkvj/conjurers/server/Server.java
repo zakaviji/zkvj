@@ -119,7 +119,7 @@ public class Server
    {
       for(ServerThread tThread : _threads)
       {
-         if(tThread._id == aID)
+         if(tThread._clientID == aID)
          {
             _threads.remove(tThread);
             return;
@@ -155,7 +155,11 @@ public class Server
    {
       boolean tReturn = false;
       
-      if("zakaviji".equals(aUserName))
+      if(Constants.kALLOW_ALL_USERS)
+      {
+         tReturn = true;
+      }
+      else if("zakaviji".equals(aUserName))
       {
          tReturn = true;
       }
@@ -165,6 +169,26 @@ public class Server
       }
       
       return tReturn;
+   }
+   
+   /**
+    * Broadcast a message to all clients
+    */
+   private synchronized void broadcastMessage(Message aMsg)
+   {
+      // loop in reverse order in case we have to remove a client
+      for(int i = _threads.size(); --i >= 0;)
+      {
+         ServerThread tThread = _threads.get(i);
+         
+         // if cannot send to client, remove it from the list
+         if(!tThread.sendMessage(aMsg))
+         {
+            _threads.remove(i);
+            System.out.println("Server: disconnected client "
+                  + tThread._userName);
+         }
+      }
    }
    
    /**
@@ -178,10 +202,10 @@ public class Server
       ObjectOutputStream _outStream;
       
       /** unique ID for this thread */
-      int _id;
+      int _clientID;
       
       /** user name of the client */
-      String _username;
+      String _userName;
       
       /** state of the client */
       ClientState _state;
@@ -192,8 +216,8 @@ public class Server
        */
       ServerThread(Socket aSocket)
       {
-         _username = "<unknown>";
-         _id = ++sNextUniqueID;
+         _userName = "<unknown>";
+         _clientID = ++sNextUniqueID;
          _state = ClientState.eLOGIN;
          
          this._socket = aSocket;
@@ -218,11 +242,11 @@ public class Server
       {
          while(true)
          {
-            Message tMessage = null;
+            Message tMsg = null;
             
             try
             {
-               tMessage = (Message)_inStream.readObject();
+               tMsg = (Message)_inStream.readObject();
             }
             catch(IOException aEx)
             {
@@ -235,14 +259,14 @@ public class Server
                break;
             }
             
-            if(null != tMessage)
+            if(null != tMsg)
             {
-               System.out.println("ServerThread: received message: " + tMessage.toString());
+               System.out.println("ServerThread: received message: " + tMsg.toString());
                
                //handle logout message regardless of client state
-               if(Type.eLOGOUT == tMessage._type)
+               if(Type.eLOGOUT == tMsg._type)
                {
-                  System.out.println("ServerThread: user " + _username + " has logged out");
+                  System.out.println("ServerThread: user " + _userName + " has logged out");
                   break;
                }
                
@@ -250,16 +274,16 @@ public class Server
                {
                   case eLOGIN:
                   {
-                     if(Type.eLOGIN_REQUEST == tMessage._type)
+                     if(Type.eLOGIN_REQUEST == tMsg._type)
                      {
                         Message tReply = new Message();
-                        if(authenticateLogin(tMessage._userName, tMessage._password))
+                        if(authenticateLogin(tMsg._userName, tMsg._password))
                         {
-                           _username = tMessage._userName;
+                           _userName = tMsg._userName;
                            _state = ClientState.eDESKTOP;
                            
                            tReply._type = Type.eLOGIN_ACCEPTED;
-                           System.out.println("ServerThread: user " + _username + " logged in successfully");
+                           System.out.println("ServerThread: user " + _userName + " logged in successfully");
                         }
                         else
                         {
@@ -271,12 +295,27 @@ public class Server
                      else
                      {
                         System.err.println("ServerThread: error: received message type " + 
-                           tMessage._type + " while in state " + _state);
+                           tMsg._type + " while in state " + _state);
                      }
                      break;
                   }
                   case eDESKTOP:
+                  {
+                     if(Type.eDESKTOP_CHAT == tMsg._type)
+                     {
+                        broadcastMessage(tMsg);
+                     }
+                     else
+                     {
+                        System.err.println("ServerThread: error: received message type " + 
+                           tMsg._type + " while in state " + _state);
+                     }
+                     break;
+                  }
                   case eGAME:
+                  {
+                     break;
+                  }
                   default:
                   {
                      System.err.println("ServerThread: warning: state " + _state + "is not handled");
@@ -287,7 +326,7 @@ public class Server
          }//end while
          
          //we have disconnected, so remove this thread from list and close
-         remove(_id);
+         remove(_clientID);
          close();
       }
 
@@ -327,7 +366,7 @@ public class Server
       /**
        * Send message to the client
        */
-      private boolean sendMessage(Message aMessage)
+      private boolean sendMessage(Message aMsg)
       {
          if(!_socket.isConnected())
          {
@@ -335,15 +374,18 @@ public class Server
             return false;
          }
          
-         System.out.println("ServerThread: sending message: " + aMessage);
+         aMsg._clientID = _clientID;
+         aMsg._userName = _userName;
+         
+         System.out.println("ServerThread: sending message: " + aMsg);
          
          try
          {
-            _outStream.writeObject(aMessage);
+            _outStream.writeObject(aMsg);
          }
          catch(IOException aEx)
          {
-            System.err.println("ServerThread: Error sending message to " + _username + ": " + aEx);
+            System.err.println("ServerThread: Error sending message to " + _userName + ": " + aEx);
          }
          
          return true;

@@ -8,6 +8,14 @@ public class GameData
    private Card _focusCard = null;
    
    /**
+    * Constructor. Initializes game data to default start game state.
+    */
+   public GameData()
+   {
+      _board.initializeBoard();
+   }
+   
+   /**
     * @return the _board
     */
    public Board getBoard()

@@ -5,17 +5,34 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 
+import com.zkvj.conjurers.client.desktop.DesktopPanel;
+import com.zkvj.conjurers.client.game.GamePanel;
 import com.zkvj.conjurers.core.Constants;
-import com.zkvj.conjurers.core.Game;
+import com.zkvj.conjurers.core.GameData;
 
 public class Launcher extends JFrame
 {
    private static final long serialVersionUID = 1337850054206041167L;
 
-   private final LoginPanel _loginPanel;
+   /** the various content panels */
+   private LoginPanel _loginPanel;
+   private DesktopPanel _desktopPanel;
+   private GamePanel _gamePanel;
    
-   private Client _client = null;
-   private Game _game = null;
+   /** the client object */
+   private Client _client;
+   
+   /** handle window close events so we can clean up and logout */
+   private final WindowAdapter _windowListener = new WindowAdapter()
+   {
+      @Override
+      public void windowClosing(WindowEvent aEvent)
+      {
+         System.out.println("Launcher: detected window close event; cleaning up and exiting");
+         _client.disconnect();
+         aEvent.getWindow().dispose();
+      }
+   };
    
    /**
     * Constructor
@@ -38,16 +55,7 @@ public class Launcher extends JFrame
       setResizable(false);
       setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       
-      addWindowListener(new WindowAdapter()
-      {
-          @Override
-          public void windowClosing(WindowEvent aEvent)
-          {
-              System.out.println("Launcher: detected window close event; cleaning up and exiting");
-              _client.disconnect();
-              aEvent.getWindow().dispose();
-          }
-      });
+      addWindowListener(_windowListener);
    }
 
    /**
@@ -61,12 +69,27 @@ public class Launcher extends JFrame
    }
 
    /**
-    * Called once our login is accepted by the server
+    * Called to switch to desktop view
     */
-   protected void loginSuccessful()
+   protected void showDesktop()
    {
-      _game = new Game();
-      this.setContentPane(_game.getGamePanel());
+      if(null == _desktopPanel)
+      {
+         _desktopPanel = new DesktopPanel(_client);
+      }
+      
+      this.setContentPane(_desktopPanel);
+      this.pack();
+   }
+
+   /**
+    * Start a new game and switch to game view
+    */
+   protected void startGame()
+   {
+      _gamePanel = new GamePanel(_client, new GameData());
+      
+      this.setContentPane(_gamePanel);
       this.pack();
    }
 }

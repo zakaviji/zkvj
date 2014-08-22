@@ -36,11 +36,12 @@ public class LoginPanel extends JPanel
              KeyEvent.VK_ENTER == aKey)
          {
             String tUsername = _username.getText().trim();
+            _client.setUserName(tUsername);
+            
             char[] tPassword = _password.getPassword();
             
             Message tLoginRequest = new Message();
             tLoginRequest._type = Message.Type.eLOGIN_REQUEST;
-            tLoginRequest._userName = tUsername;
             tLoginRequest._password = String.valueOf(tPassword);
             
             _client.sendMessage(tLoginRequest);

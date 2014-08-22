@@ -34,7 +34,7 @@ public final class Constants
    public static final Color kPLAYER_ONE_SHADE = new Color(255,255,255,50);
    public static final Color kPLAYER_TWO_SHADE = new Color(0,0,0,50);
    public static final Color kTRANSPARENT_COLOR = new Color(0,0,0,0);
-   public static final Color kUI_BKGD_COLOR = new Color(0,0,0,128);
+   public static final Color kUI_BKGD_COLOR = Color.DARK_GRAY;//new Color(0,0,0,128);
    
    /** Layers */
    public static final Integer kBACKGROUND_LAYER = new Integer(0);
@@ -67,4 +67,10 @@ public final class Constants
    /** dimensions for login panel */
    public static final int kLOGIN_WIDTH = 500;
    public static final int kLOGIN_HEIGHT = 100;
+   
+   /** padding between UI elements */
+   public static final int kUI_PADDING = 10;
+
+   /** set to false in order to restrict logins */
+   public static final boolean kALLOW_ALL_USERS = true;
 }
