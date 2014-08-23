@@ -13,7 +13,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import com.zkvj.conjurers.client.Client;
-import com.zkvj.conjurers.client.Client.ChatMsgListener;
+import com.zkvj.conjurers.client.Client.ClientMessageHandler;
 import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.Message;
 import com.zkvj.conjurers.core.Message.Type;
@@ -59,12 +59,16 @@ public class ChatHistoryPanel extends JPanel
       }
    };
    
-   private final ChatMsgListener _chatListener = new ChatMsgListener()
+   private final ClientMessageHandler _messageHandler = new ClientMessageHandler()
    {
       @Override
-      public void handleChatMessage(String aMsg)
+      public void handleMessage(Message aMsg)
       {
-         _textArea.append(aMsg + "\n");
+         if((_desktopMode && Type.eDESKTOP_CHAT == aMsg.type) ||
+            (!_desktopMode && Type.eGAME_CHAT == aMsg.type))
+         {
+            _textArea.append(aMsg.chatMessage + "\n");
+         }
       }
    };
    
@@ -80,14 +84,7 @@ public class ChatHistoryPanel extends JPanel
       
       setBackground(Constants.kBACKGROUND_COLOR);
       
-      if(_desktopMode)
-      {
-         _client.addDesktopChatListener(_chatListener);
-      }
-      else
-      {
-         _client.addGameChatListener(_chatListener);
-      }
+      _client.addMessageHandler(_messageHandler);
       
       initComponents();
    }

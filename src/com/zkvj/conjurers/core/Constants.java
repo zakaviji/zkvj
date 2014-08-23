@@ -14,10 +14,10 @@ public final class Constants
    public static final Dimension kSCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
    
    /** Dimensions */
-   public static final int kWIDTH = 1600;
-   public static final int kHEIGHT = 900;
-//   public static final int kWIDTH = kSCREEN_SIZE.width * 4/5;
-//   public static final int kHEIGHT = kSCREEN_SIZE.height * 4/5;
+//   public static final int kWIDTH = 1600;
+//   public static final int kHEIGHT = 900;
+   public static final int kWIDTH = kSCREEN_SIZE.width - 50;
+   public static final int kHEIGHT = kSCREEN_SIZE.height - 50;
    
    /** Numbers of rings in the hexagonal game board */
    public static final int kHEX_RINGS = 4;

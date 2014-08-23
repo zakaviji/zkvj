@@ -16,18 +16,14 @@ public class Client
    /**
     * Listener for chat messages
     */
-   public static abstract class ChatMsgListener
+   public static abstract class ClientMessageHandler
    {
-      public abstract void handleChatMessage(String aMsg);
+      public abstract void handleMessage(Message aMsg);
    }
    
    /** list of listeners for desktop chat messages */
-   private final List<ChatMsgListener> _desktopChatListeners = 
-      new ArrayList<ChatMsgListener>();
-   
-   /** list of listeners for game chat messages */
-   private final List<ChatMsgListener> _gameChatListeners = 
-      new ArrayList<ChatMsgListener>();
+   private final List<ClientMessageHandler> _messageHandlers = 
+      new ArrayList<ClientMessageHandler>();
    
    /** for I/O */
    private ObjectInputStream _inStream;      // to read from the socket
@@ -66,17 +62,9 @@ public class Client
    /**
     * Add listener for desktop chat messages from server
     */
-   public void addDesktopChatListener(ChatMsgListener aListener)
+   public void addMessageHandler(ClientMessageHandler aHandler)
    {
-      _desktopChatListeners.add(aListener);
-   }
-   
-   /**
-    * Add listener for game chat messages from server
-    */
-   public void addGameChatListener(ChatMsgListener aListener)
-   {
-      _gameChatListeners.add(aListener);
+      _messageHandlers.add(aHandler);
    }
    
    /**
@@ -191,21 +179,12 @@ public class Client
             //advance client state
             _state = ClientState.eDESKTOP;
             _launcher.showDesktop();
+//            _launcher.startGame();
          }
-         else if(Type.eDESKTOP_CHAT == aMsg.type)
+         
+         for(ClientMessageHandler tHandler : _messageHandlers)
          {
-            for(ChatMsgListener tListener : _desktopChatListeners)
-            {
-               tListener.handleChatMessage(aMsg.chatMessage);
-            }
-         }
-         else if(Type.eUSER_LIST == aMsg.type)
-         {
-            //TODO
-         }
-         else
-         {
-            System.out.println("Client: message type " + aMsg.type + "not handled");
+            tHandler.handleMessage(aMsg);
          }
       }
       else
