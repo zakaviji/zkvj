@@ -55,7 +55,7 @@ public class DesktopPanel extends JPanel
       
       _playerListPanel = new PlayerListPanel(_client);
       _playerListPanel.setLocation(new Point(tWidth  * 4/5, tHeight * 3/4));
-      _playerListPanel.setSize(new Dimension(tWidth * 1/5, tHeight * 3/4));
+      _playerListPanel.setSize(new Dimension(tWidth * 1/5, tHeight * 1/4));
       add(_playerListPanel);
    }
 }

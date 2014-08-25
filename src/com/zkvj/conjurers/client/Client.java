@@ -37,9 +37,6 @@ public class Client
    /** client ID and user name */
    private int _clientID;
    private String _userName;
-
-   /** handle to launcher to pass back events */
-   private final Launcher _launcher;
    
    /** thread on which we listen to server */
    private ClientThread _thread;
@@ -52,11 +49,10 @@ public class Client
     * @param aHostName
     * @param aPort
     */
-   public Client(String aHostName, int aPort, Launcher aLauncher)
+   public Client(String aHostName, int aPort)
    {
       _hostName = aHostName;
       _port = aPort;
-      _launcher = aLauncher;
    }
    
    /**
@@ -178,8 +174,6 @@ public class Client
             
             //advance client state
             _state = ClientState.eDESKTOP;
-            _launcher.showDesktop();
-//            _launcher.startGame();
          }
          
          for(ClientMessageHandler tHandler : _messageHandlers)
@@ -216,7 +210,7 @@ public class Client
    /**
     * Thread which processes messages from the server
     */
-   class ClientThread extends Thread
+   private class ClientThread extends Thread
    {
       boolean _keepListening = true;
       

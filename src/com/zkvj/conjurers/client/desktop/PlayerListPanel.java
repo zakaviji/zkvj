@@ -73,9 +73,13 @@ public class PlayerListPanel extends JPanel
       _tableModel = new PlayerListTableModel();
       JTable tTable = new JTable(_tableModel);
       tTable.setTableHeader(null);
-
+      tTable.setShowGrid(false);
       tTable.setBackground(Constants.kUI_BKGD_COLOR);
       tTable.setForeground(Color.WHITE);
+      tTable.setSelectionBackground(Color.BLACK);
+      tTable.setSelectionForeground(Color.WHITE);
+      tTable.setFillsViewportHeight(true);
+      
       this.add(new JScrollPane(tTable), tConstaints);
    }
    

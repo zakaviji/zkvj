@@ -5,10 +5,13 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 
+import com.zkvj.conjurers.client.Client.ClientMessageHandler;
 import com.zkvj.conjurers.client.desktop.DesktopPanel;
 import com.zkvj.conjurers.client.game.GamePanel;
 import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.GameData;
+import com.zkvj.conjurers.core.Message;
+import com.zkvj.conjurers.core.Message.Type;
 
 public class Launcher extends JFrame
 {
@@ -21,6 +24,20 @@ public class Launcher extends JFrame
    
    /** the client object */
    private Client _client;
+   
+   /** handle messages received by this client */
+   private final ClientMessageHandler _messageHandler = new ClientMessageHandler()
+   {
+      @Override
+      public void handleMessage(Message aMsg)
+      {  
+         if(Type.eLOGIN_ACCEPTED == aMsg.type)
+         {
+            showDesktop();
+//            startGame();
+         }
+      }
+   };
    
    /** handle window close events so we can clean up and logout */
    private final WindowAdapter _windowListener = new WindowAdapter()
@@ -41,7 +58,8 @@ public class Launcher extends JFrame
    {
       super("Conjurers");
       
-      _client = new Client(Constants.kHOST_NAME, Constants.kPORT_NUMBER, this);
+      _client = new Client(Constants.kHOST_NAME, Constants.kPORT_NUMBER);
+      _client.addMessageHandler(_messageHandler);
       
       if(!_client.start())
       {

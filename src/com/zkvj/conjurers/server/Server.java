@@ -6,7 +6,9 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.zkvj.conjurers.core.ClientState;
 import com.zkvj.conjurers.core.Constants;
@@ -19,7 +21,7 @@ import com.zkvj.conjurers.core.Message.Type;
 public class Server
 {
    /** keep track of the next available client ID */
-   private static int sNextUniqueID = 0;
+   private static int sNextUniqueID = 1;
    
    /** the port number */
    private int _port;
@@ -28,7 +30,7 @@ public class Server
    private boolean _keepServing;
    
    /** list of client threads */
-   private ArrayList<ServerThread> _threads;
+   private Map<Integer, ServerThread> _threadMap = new HashMap<Integer, ServerThread>();
    
    /**
     * Constructor
@@ -37,7 +39,6 @@ public class Server
    public Server(int aPort)
    {
       _port = aPort;
-      _threads = new ArrayList<ServerThread>();
    }
    
    /**
@@ -64,10 +65,13 @@ public class Server
                break;
             }
             
-            ServerThread tThread = new ServerThread(tSocket);
-            synchronized (_threads)
+            int tClientID = sNextUniqueID;
+            sNextUniqueID++;
+            
+            ServerThread tThread = new ServerThread(tSocket, tClientID);
+            synchronized (_threadMap)
             {
-               _threads.add(tThread);
+               _threadMap.put(new Integer(tClientID), tThread);
             }
             tThread.start();
          }
@@ -77,9 +81,9 @@ public class Server
          {
             tServerSocket.close();
             
-            synchronized (_threads)
+            synchronized (_threadMap)
             {
-               for(ServerThread tThread : _threads)
+               for(ServerThread tThread : _threadMap.values())
                {
                   try
                   {
@@ -122,18 +126,11 @@ public class Server
     * Remove a client who has logged off.
     * @param aID - client ID
     */
-   private void remove(int aID)
+   private void removeThread(int aID)
    {
-      synchronized (_threads)
+      synchronized (_threadMap)
       {
-         for(ServerThread tThread : _threads)
-         {
-            if(tThread._clientID == aID)
-            {
-               _threads.remove(tThread);
-               return;
-            }
-         }
+         _threadMap.remove(new Integer(aID));
       }
    }
    
@@ -191,9 +188,9 @@ public class Server
       
       List<String> tUsers = new ArrayList<String>();
       
-      synchronized (_threads)
+      synchronized (_threadMap)
       {
-         for(ServerThread tThread : _threads)
+         for(ServerThread tThread : _threadMap.values())
          {
             if(ClientState.eLOGIN != tThread._state)
             {
@@ -212,19 +209,17 @@ public class Server
     */
    private void broadcastMessage(Message aMsg)
    {
-      synchronized (_threads)
+      synchronized (_threadMap)
       {
-         // loop in reverse order in case we have to remove a client
-         for(int i = _threads.size(); --i >= 0;)
+         for(Map.Entry<Integer, ServerThread> tEntry : _threadMap.entrySet())
          {
-            ServerThread tThread = _threads.get(i);
+            ServerThread tThread = tEntry.getValue();
             
-            // if cannot send to client, remove it from the list
             if(!tThread.sendMessage(aMsg))
             {
-               _threads.remove(i);
-               System.out.println("Server: disconnected client "
-                     + tThread._userName);
+               _threadMap.remove(tEntry.getKey());
+               tThread.close();
+               System.out.println("Server: disconnected client " + tThread._userName);
             }
          }
       }
@@ -233,30 +228,30 @@ public class Server
    /**
     * One instance of this thread will run for each client
     */
-   class ServerThread extends Thread
+   private class ServerThread extends Thread
    {
       /** the socket where to listen/talk */
-      Socket _socket;
-      ObjectInputStream _inStream;
-      ObjectOutputStream _outStream;
+      private final Socket _socket;
+      private ObjectInputStream _inStream;
+      private ObjectOutputStream _outStream;
       
       /** unique ID for this thread */
-      int _clientID;
+      private final int _clientID;
       
       /** user name of the client */
-      String _userName;
+      private String _userName;
       
       /** state of the client */
-      ClientState _state;
+      private ClientState _state;
 
       /**
        * Constructor
        * @param aSocket
        */
-      ServerThread(Socket aSocket)
+      public ServerThread(Socket aSocket, int aClientID)
       {
          _userName = "<unknown>";
-         _clientID = ++sNextUniqueID;
+         _clientID = aClientID;
          _state = ClientState.eLOGIN;
          
          this._socket = aSocket;
@@ -308,8 +303,8 @@ public class Server
             processMessage(tMsg);
          }//end while
          
-         //we have disconnected, so remove this thread from list and close
-         remove(_clientID);
+         //we have disconnected, so remove this thread from map and close
+         removeThread(_clientID);
          close();
          
          broadcastUserList();
