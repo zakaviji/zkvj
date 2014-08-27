@@ -1,6 +1,7 @@
 package com.zkvj.conjurers.core;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Message sent between the client and server
@@ -14,21 +15,69 @@ public class Message implements Serializable
     */
    public enum Type
    {
+      /**
+       * Messages from the client
+       */
       eLOGIN_REQUEST,
+      eLOGOUT,
+      eGAME_ACCEPT,
+      
+      /**
+       * Messages from the server
+       */
       eLOGIN_ACCEPTED,
       eLOGIN_REJECTED,
-      eLOGOUT,
+      eUSER_LIST,
+      eGAME_START,
+      
+      /**
+       * Two-way messages
+       */
       eDESKTOP_CHAT,
       eGAME_CHAT,
-      eUSER_LIST,
+      eGAME_REQUEST,
    }
    
-   public Type type;
+   /**
+    * Message type; must be specified in constructor
+    */
+   public final Type type;
+   
+   /**
+    * The client ID and user name fields always correspond to client who 
+    * is sending/receiving the message
+    */
    public int clientID;
    public String userName;
+   
+   /**
+    * used for eLOGIN_REQUEST messages
+    */
    public String password;
+   
+   /**
+    * used for eDESKTOP_CHAT and eGAME_CHAT messages
+    */
    public String chatMessage;
-   public String[] userList;
+   
+   /**
+    * used for eUSER_LIST messages
+    */
+   public List<String> userList;
+   
+   /**
+    * used for eGAME_REQUEST, eGAME_ACCEPT, and eGAME_START messages
+    */
+   public String opponent;
+   
+   /**
+    * Constructor
+    * @param aType - message type
+    */
+   public Message(Type aType)
+   {
+      type = aType;
+   }
    
    @Override
    public String toString()
@@ -50,16 +99,21 @@ public class Message implements Serializable
          tBuild.append(",chatMessage=").append(chatMessage);
       }
       
-      if(null != userList && userList.length > 0)
+      if(null != userList && userList.size() > 0)
       {
-         tBuild.append(",userList=[").append(userList[0]);
+         tBuild.append(",userList=[").append(userList.get(0));
          
-         for(int i=1; i<userList.length; i++)
+         for(int i=1; i<userList.size(); i++)
          {
-            tBuild.append(",").append(userList[i]);
+            tBuild.append(",").append(userList.get(i));
          }
          
          tBuild.append("]");
+      }
+      
+      if(null != opponent && opponent.length() > 0)
+      {
+         tBuild.append(",opponent=").append(opponent);
       }
       
       tBuild.append("}");

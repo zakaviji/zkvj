@@ -7,7 +7,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.zkvj.conjurers.core.ClientState;
@@ -29,8 +28,11 @@ public class Server
    /** while true, keep listening for clients */
    private boolean _keepServing;
    
-   /** list of client threads */
+   /** map of client threads by client ID */
    private Map<Integer, ServerThread> _threadMap = new HashMap<Integer, ServerThread>();
+   
+   /** map of client ID's by user name */
+   private Map<String, Integer> _userNameMap = new HashMap<String, Integer>();
    
    /**
     * Constructor
@@ -65,13 +67,13 @@ public class Server
                break;
             }
             
-            int tClientID = sNextUniqueID;
+            Integer tClientID = new Integer(sNextUniqueID);
             sNextUniqueID++;
             
             ServerThread tThread = new ServerThread(tSocket, tClientID);
             synchronized (_threadMap)
             {
-               _threadMap.put(new Integer(tClientID), tThread);
+               _threadMap.put(tClientID, tThread);
             }
             tThread.start();
          }
@@ -126,11 +128,17 @@ public class Server
     * Remove a client who has logged off.
     * @param aID - client ID
     */
-   private void removeThread(int aID)
+   private void removeThread(Integer aID)
    {
       synchronized (_threadMap)
       {
-         _threadMap.remove(new Integer(aID));
+         ServerThread tThread = _threadMap.get(aID);
+         
+         if(null != tThread)
+         {
+            _userNameMap.remove(tThread._userName);
+            _threadMap.remove(aID);
+         }
       }
    }
    
@@ -183,23 +191,12 @@ public class Server
     */
    private void broadcastUserList()
    {
-      Message tMsg = new Message();
-      tMsg.type = Type.eUSER_LIST;
-      
-      List<String> tUsers = new ArrayList<String>();
+      Message tMsg = new Message(Type.eUSER_LIST);
       
       synchronized (_threadMap)
       {
-         for(ServerThread tThread : _threadMap.values())
-         {
-            if(ClientState.eLOGIN != tThread._state)
-            {
-               tUsers.add(tThread._userName);
-            }
-         }
+         tMsg.userList = new ArrayList<String>(_userNameMap.keySet());
       }
-      
-      tMsg.userList = (String[])tUsers.toArray(new String[tUsers.size()]);
       
       broadcastMessage(tMsg);
    }
@@ -217,11 +214,112 @@ public class Server
             
             if(!tThread.sendMessage(aMsg))
             {
+               _userNameMap.remove(tThread._userName);
                _threadMap.remove(tEntry.getKey());
                tThread.close();
                System.out.println("Server: disconnected client " + tThread._userName);
             }
          }
+      }
+   }
+   
+   /**
+    * Sends the given message to the client with the given ID, if any.
+    * @param aClientID
+    * @param aMsg
+    */
+   private void sendMessageToClient(Integer aClientID, Message aMsg)
+   {
+      if(null == aMsg ||
+         null == aClientID)
+      {
+         System.err.println("Server: sendMessageToClient: given client id or msg was null");
+         return;
+      }
+      
+      synchronized (_threadMap)
+      {
+         ServerThread tThread = _threadMap.get(aClientID);
+         
+         if(null != tThread)
+         {
+            if(!tThread.sendMessage(aMsg))
+            {
+               _userNameMap.remove(tThread._userName);
+               _threadMap.remove(aClientID);
+               tThread.close();
+               System.out.println("Server: disconnected client " + tThread._userName);
+            }
+         }
+      }
+   }
+   
+   /**
+    * Sends the given message to the client with the given username, if any.
+    * @param aUserName
+    * @param aMsg
+    */
+   private void sendMessageToUser(String aUserName, Message aMsg)
+   {
+      Integer tClientID = null;
+      synchronized (_threadMap)
+      {
+         tClientID = _userNameMap.get(aUserName);
+      }
+      
+      if(null != tClientID)
+      {
+         sendMessageToClient(tClientID, aMsg);
+      }
+   }
+   
+   /**
+    * Starts a new game between user A and user B.
+    * @param aUserA
+    * @param aUserB
+    */
+   private void startGame(String aUserA, String aUserB)
+   {
+      Integer tClientA = null, tClientB = null;
+      
+      synchronized (_threadMap)
+      {
+         tClientA = _userNameMap.get(aUserA);
+         tClientB = _userNameMap.get(aUserB);
+      }
+      
+      if(null != tClientA || null != tClientB)
+      {
+         ServerThread tThreadA = null, tThreadB = null;
+         
+         synchronized (_threadMap)
+         {
+            tThreadA = _threadMap.get(tClientA);
+            tThreadB = _threadMap.get(tClientB);
+         }
+  
+         if(null == tThreadA || ClientState.eDESKTOP != tThreadA._state ||
+            null == tThreadB || ClientState.eDESKTOP != tThreadB._state)
+         {
+            System.err.println("Server:startGame: unable to start game");
+            return;
+         }
+         
+         tThreadA._state = ClientState.eGAME;
+         tThreadA._opponentID = tClientB;
+         
+         tThreadB._state = ClientState.eGAME;
+         tThreadB._opponentID = tClientA;
+         
+         Message tGameStartMsg = new Message(Type.eGAME_START);
+         
+         //todo: add game (deck) info to game start message
+         
+         tGameStartMsg.opponent = aUserB;
+         sendMessageToClient(tClientA, tGameStartMsg);
+         
+         tGameStartMsg.opponent = aUserA;
+         sendMessageToClient(tClientB, tGameStartMsg);
       }
    }
    
@@ -236,7 +334,10 @@ public class Server
       private ObjectOutputStream _outStream;
       
       /** unique ID for this thread */
-      private final int _clientID;
+      private final Integer _clientID;
+      
+      /** ID for our opponent (when in game) */
+      private Integer _opponentID = null;
       
       /** user name of the client */
       private String _userName;
@@ -248,7 +349,7 @@ public class Server
        * Constructor
        * @param aSocket
        */
-      public ServerThread(Socket aSocket, int aClientID)
+      public ServerThread(Socket aSocket, Integer aClientID)
       {
          _userName = "<unknown>";
          _clientID = aClientID;
@@ -359,23 +460,28 @@ public class Server
                {
                   if(Type.eLOGIN_REQUEST == aMsg.type)
                   {
-                     Message tReply = new Message();
+                     Message tReplyMsg;
                      if(authenticateLogin(aMsg.userName, aMsg.password))
                      {
                         _userName = aMsg.userName;
                         _state = ClientState.eDESKTOP;
                         
-                        tReply.type = Type.eLOGIN_ACCEPTED;
+                        synchronized (_threadMap)
+                        {
+                           _userNameMap.put(_userName, _clientID);
+                        }
+
+                        tReplyMsg = new Message(Type.eLOGIN_ACCEPTED);
                         System.out.println("ServerThread: user " + _userName + " logged in successfully");
                         
                         broadcastUserList();
                      }
                      else
                      {
-                        tReply.type = Type.eLOGIN_REJECTED;
+                        tReplyMsg = new Message(Type.eLOGIN_REJECTED);
                         System.out.println("ServerThread: login was rejected");
                      }
-                     sendMessage(tReply);
+                     sendMessage(tReplyMsg);
                   }
                   else
                   {
@@ -390,6 +496,20 @@ public class Server
                   {
                      broadcastMessage(aMsg);
                   }
+                  //forward game request to appropriate client
+                  else if(Type.eGAME_REQUEST == aMsg.type)
+                  {
+                     String tRecipient = aMsg.opponent;
+                     
+                     Message tRequestMsg = new Message(Type.eGAME_REQUEST);
+                     tRequestMsg.opponent = aMsg.userName;
+                     
+                     sendMessageToUser(tRecipient, tRequestMsg);
+                  }
+                  else if(Type.eGAME_ACCEPT == aMsg.type)
+                  {
+                     startGame(_userName, aMsg.opponent);
+                  }
                   else
                   {
                      System.err.println("ServerThread: error: received message type " + 
@@ -399,6 +519,16 @@ public class Server
                }
                case eGAME:
                {
+                  if(Type.eGAME_CHAT == aMsg.type)
+                  {
+                     sendMessage(aMsg);//echo back to self
+                     sendMessageToClient(_opponentID, aMsg);//send to opponent
+                  }
+                  else
+                  {
+                     System.err.println("ServerThread: error: received message type " + 
+                        aMsg.type + " while in state " + _state);
+                  }
                   break;
                }
                default:
@@ -421,7 +551,7 @@ public class Server
             return false;
          }
          
-         aMsg.clientID = _clientID;
+         aMsg.clientID = _clientID.intValue();
          aMsg.userName = _userName;
          
          System.out.println("ServerThread: sending message: " + aMsg);

@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 
 import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.Message;
+import com.zkvj.conjurers.core.Message.Type;
 
 public class LoginPanel extends JPanel
 {
@@ -37,8 +38,7 @@ public class LoginPanel extends JPanel
             
             char[] tPassword = _password.getPassword();
             
-            Message tLoginRequest = new Message();
-            tLoginRequest.type = Message.Type.eLOGIN_REQUEST;
+            Message tLoginRequest = new Message(Type.eLOGIN_REQUEST);
             tLoginRequest.password = String.valueOf(tPassword);
             
             _client.sendMessage(tLoginRequest);

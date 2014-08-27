@@ -60,7 +60,10 @@ public class Client
     */
    public void addMessageHandler(ClientMessageHandler aHandler)
    {
-      _messageHandlers.add(aHandler);
+      synchronized (_messageHandlers)
+      {
+         _messageHandlers.add(aHandler);
+      }
    }
    
    /**
@@ -123,10 +126,7 @@ public class Client
    {
       _thread._keepListening = false;
       
-      //send a logout message
-      Message tLogout = new Message();
-      tLogout.type = Type.eLOGOUT;
-      sendMessage(tLogout);
+      sendMessage(new Message(Type.eLOGOUT));
       
       try
       {
@@ -171,14 +171,14 @@ public class Client
             //keep track of our user name and client ID
             _clientID = aMsg.clientID;
             _userName = aMsg.userName;
-            
-            //advance client state
-            _state = ClientState.eDESKTOP;
          }
          
-         for(ClientMessageHandler tHandler : _messageHandlers)
+         synchronized (_messageHandlers)
          {
-            tHandler.handleMessage(aMsg);
+            for(ClientMessageHandler tHandler : _messageHandlers)
+            {
+               tHandler.handleMessage(aMsg);
+            }
          }
       }
       else
@@ -207,6 +207,22 @@ public class Client
       }
    }
    
+   /**
+    * @return the state
+    */
+   public ClientState getState()
+   {
+      return _state;
+   }
+
+   /**
+    * @param aState the state to set
+    */
+   public void setState(ClientState aState)
+   {
+      _state = aState;
+   }
+
    /**
     * Thread which processes messages from the server
     */

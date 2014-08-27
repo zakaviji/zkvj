@@ -42,19 +42,19 @@ public class ChatHistoryPanel extends JPanel
             String tText = _client.getUserName() + ": " + _textField.getText();
             _textField.setText("");
             
-            Message tMessage = new Message();
+            Message tChatMsg;
             
             if(_desktopMode)
             {
-               tMessage.type = Type.eDESKTOP_CHAT;
+               tChatMsg = new Message(Type.eDESKTOP_CHAT);
             }
             else
             {
-               tMessage.type = Type.eGAME_CHAT;
+               tChatMsg = new Message(Type.eGAME_CHAT);
             }
             
-            tMessage.chatMessage = tText;
-            _client.sendMessage(tMessage);
+            tChatMsg.chatMessage = tText;
+            _client.sendMessage(tChatMsg);
          }
       }
    };

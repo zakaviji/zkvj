@@ -58,4 +58,12 @@ public class DesktopPanel extends JPanel
       _playerListPanel.setSize(new Dimension(tWidth * 1/5, tHeight * 1/4));
       add(_playerListPanel);
    }
+   
+   /**
+    * Resets the components of this panel back to their default state
+    */
+   public void reset()
+   {
+      _playerListPanel.reset();
+   }
 }
