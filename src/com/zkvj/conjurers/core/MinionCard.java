@@ -5,6 +5,8 @@ package com.zkvj.conjurers.core;
  */
 public class MinionCard extends Card
 {
+   private static final long serialVersionUID = 3827470256463249083L;
+   
    private final Element _element;
    private final int _power;
    private final int _health;
@@ -19,15 +21,17 @@ public class MinionCard extends Card
     * @param aHealth
     * @param aEffect
     */
-   public MinionCard(String aName,
+   public MinionCard(int aID,
+                     String aName,
                      int aEneryCost,
                      Rarity aRarity,
+                     String aText,
                      Element aElement,
                      int aPower,
                      int aHealth,
                      Effect aEffect)
    {
-      super(aName, aEneryCost, aRarity);
+      super(aID, aName, aEneryCost, aRarity, aText);
       
       this._element = aElement;
       this._power = aPower;

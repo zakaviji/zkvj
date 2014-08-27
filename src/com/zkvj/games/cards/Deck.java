@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class Deck
 {
    /** array list of the cards in this deck */
-   private final ArrayList<PlayingCard> _deck = new ArrayList<PlayingCard>();
+   private final ArrayList<Card> _deck = new ArrayList<Card>();
    
    /**
     * Constructor
@@ -21,7 +21,7 @@ public class Deck
     * Adds the given card to the bottom of the deck.
     * @param aCard
     */
-   public void addBottom(PlayingCard aCard)
+   public void addBottom(Card aCard)
    {
       _deck.add(aCard);
    }
@@ -30,7 +30,7 @@ public class Deck
     * Adds the given card to the deck at random.
     * @param aCard
     */
-   public void addRandom(PlayingCard aCard)
+   public void addRandom(Card aCard)
    {
       int tIndex = (int)Math.floor(size() * Math.random());
       _deck.add(tIndex, aCard);
@@ -40,7 +40,7 @@ public class Deck
     * Adds the given card to the top of the deck.
     * @param aCard
     */
-   public void addTop(PlayingCard aCard)
+   public void addTop(Card aCard)
    {
       _deck.add(0, aCard);
    }
@@ -50,9 +50,9 @@ public class Deck
     * Returns null if the deck is empty.
     * @return Card or null
     */
-   public PlayingCard drawBottom()
+   public Card drawBottom()
    {
-      PlayingCard tReturn = null;
+      Card tReturn = null;
       
       if(size() > 0)
       {
@@ -67,9 +67,9 @@ public class Deck
     * Returns null if the deck is empty.
     * @return Card or null
     */
-   public PlayingCard drawRandom()
+   public Card drawRandom()
    {
-      PlayingCard tReturn = null;
+      Card tReturn = null;
       
       if(size() > 0)
       {
@@ -85,9 +85,9 @@ public class Deck
     * Returns null if the deck is empty.
     * @return Card or null
     */
-   public PlayingCard drawTop()
+   public Card drawTop()
    {
-      PlayingCard tReturn = null;
+      Card tReturn = null;
       
       if(size() > 0)
       {

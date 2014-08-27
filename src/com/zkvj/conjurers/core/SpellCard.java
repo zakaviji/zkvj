@@ -5,6 +5,8 @@ package com.zkvj.conjurers.core;
  */
 public class SpellCard extends Card
 {
+   private static final long serialVersionUID = -617073088682063706L;
+   
    private final Effect _effect;
    
    /**
@@ -13,12 +15,14 @@ public class SpellCard extends Card
     * @param aEneryCost
     * @param aEffect
     */
-   public SpellCard(String aName,
+   public SpellCard(int aID,
+                    String aName,
                     int aEneryCost,
                     Rarity aRarity,
+                    String aText,
                     Effect aEffect)
    {
-      super(aName, aEneryCost, aRarity);
+      super(aID, aName, aEneryCost, aRarity, aText);
       
       this._effect = aEffect;
    }
