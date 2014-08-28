@@ -10,7 +10,9 @@ import com.zkvj.conjurers.client.Client.ClientMessageHandler;
 import com.zkvj.conjurers.client.desktop.DesktopPanel;
 import com.zkvj.conjurers.client.game.GamePanel;
 import com.zkvj.conjurers.core.ClientState;
+import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
+import com.zkvj.conjurers.core.Deck;
 import com.zkvj.conjurers.core.GameData;
 import com.zkvj.conjurers.core.Message;
 import com.zkvj.conjurers.core.Message.Type;
@@ -52,7 +54,7 @@ public class Launcher extends JFrame
                }
                else if(Type.eGAME_START == aMsg.type)
                {
-                  startGame();
+                  startGame(aMsg.userName, aMsg.opponent);
                }
                break;
             }
@@ -92,7 +94,6 @@ public class Launcher extends JFrame
       
       _loginPanel = new LoginPanel(_client);
       _desktopPanel = new DesktopPanel(_client);
-      _gamePanel = new GamePanel(_client, new GameData());
       
       setContentPane(_loginPanel);
       setResizable(false);
@@ -151,8 +152,13 @@ public class Launcher extends JFrame
    /**
     * Start a new game and switch to game view
     */
-   protected void startGame()
+   protected void startGame(String aPlayer, String aOpponent)
    {
+      Conjurer tPlayer = new Conjurer(aPlayer, new Deck());
+      Conjurer tOpponent = new Conjurer(aPlayer, new Deck());
+      
+      _gamePanel = new GamePanel(_client, new GameData(tPlayer, tOpponent));
+      
       _client.setState(ClientState.eGAME);
       
       this.setContentPane(_gamePanel);

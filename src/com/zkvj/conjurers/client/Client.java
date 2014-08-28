@@ -173,12 +173,16 @@ public class Client
             _userName = aMsg.userName;
          }
          
+         //hold lock while creating temp copy of list
+         List<ClientMessageHandler> tCopy;
          synchronized (_messageHandlers)
          {
-            for(ClientMessageHandler tHandler : _messageHandlers)
-            {
-               tHandler.handleMessage(aMsg);
-            }
+            tCopy = new ArrayList<ClientMessageHandler>(_messageHandlers);
+         }
+
+         for(ClientMessageHandler tHandler : tCopy)
+         {
+            tHandler.handleMessage(aMsg);
          }
       }
       else

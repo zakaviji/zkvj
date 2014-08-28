@@ -1,18 +1,34 @@
 package com.zkvj.conjurers.core;
 
+import java.io.Serializable;
+
 /**
  * An individual hexagonal space on the Conjurers game board.
  */
-public class Well
+public class Well implements Serializable
 {
-   private Element _elementType = Element.eNEUTRAL;
-   private Conjurer _controller = null;
+   private static final long serialVersionUID = -3082920850583791539L;
+   
+   private Element _elementType;
+   private Conjurer _controller;
    
    /**
     * Constructor
     */
    public Well()
    {
+      _elementType = Element.eNEUTRAL;
+      _controller = null;
+   }
+   
+   /**
+    * Constructor
+    * @param aElement
+    */
+   public Well(Element aElement)
+   {
+      _elementType = aElement;
+      _controller = null;
    }
 
    /**

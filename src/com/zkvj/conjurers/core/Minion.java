@@ -1,14 +1,17 @@
 package com.zkvj.conjurers.core;
 
+import java.io.Serializable;
+
 /**
  * Class representing a minion entity that is on the board.
  */
-public class Minion implements Entity
+public class Minion implements Entity, Serializable
 {
-   private final MinionCard _card;
+   private static final long serialVersionUID = -6964740931116576091L;
+   
+   private final Card _card;
    private int _power;
    private int _health;
-   private int _maxHealth;
    private String _name;
    private Conjurer _controller;
    private Element _element;
@@ -19,14 +22,12 @@ public class Minion implements Entity
     * @param aCard
     * @param aController
     */
-   public Minion(MinionCard aCard, Conjurer aController)
+   public Minion(Card aCard, Conjurer aController)
    {
       _card = aCard;
       _controller = aController;
-      
       _power = _card.getPower();
       _health = _card.getHealth();
-      _maxHealth = _card.getHealth();
       _name = _card.getName();
       _element = _card.getElement();
       //_effect = _card.getEffect();
@@ -36,7 +37,7 @@ public class Minion implements Entity
     * Returns the card object for this minion.
     * @return MinionCard
     */
-   public MinionCard getCard()
+   public Card getCard()
    {
       return _card;
    }
@@ -131,23 +132,5 @@ public class Minion implements Entity
    public void setHealth(int aHealth)
    {
       _health = aHealth;
-   }
-   
-   /**
-    * Returns the maximum health of this minion.
-    * @return int
-    */
-   public int getMaxHealth()
-   {
-      return _maxHealth;
-   }
-   
-   /**
-    * Sets the maximum health of this minion.
-    * @param aMaxHealth
-    */
-   public void setMaxHealth(int aMaxHealth)
-   {
-      _maxHealth = aMaxHealth;
    }
 }

@@ -2,7 +2,6 @@ package com.zkvj.conjurers.core;
 
 import java.awt.Color;
 
-
 /**
  * Enumeration defining the elements available in Conjurers.
  */

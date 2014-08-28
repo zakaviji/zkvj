@@ -1,18 +1,25 @@
 package com.zkvj.conjurers.core;
 
-public class GameData
+import java.io.Serializable;
+
+public class GameData implements Serializable
 {
-   private Conjurer _player = new Conjurer("Default Player");
-   private Conjurer _opponent = new Conjurer("Default Opponent");
-   private Board _board = new Board();
-   private Card _focusCard = null;
+   private static final long serialVersionUID = 2399765568244517550L;
+   
+   private Conjurer _player;
+   private Conjurer _opponent;
+   private Board _board;
+   private Card _focusCard;
    
    /**
     * Constructor. Initializes game data to default start game state.
     */
-   public GameData()
+   public GameData(Conjurer aPlayer, Conjurer aOpponent)
    {
-      _board.initializeBoard();
+      _player = aPlayer;
+      _opponent = aOpponent;
+      _board = new Board();
+      _focusCard = null;
    }
    
    /**

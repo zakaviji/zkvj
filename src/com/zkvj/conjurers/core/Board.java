@@ -1,6 +1,7 @@
 package com.zkvj.conjurers.core;
 
 import java.awt.Point;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -9,8 +10,10 @@ import java.util.Set;
 /**
  * Class representing the board in a game a Conjurers.
  */
-public class Board
+public class Board implements Serializable
 {
+   private static final long serialVersionUID = 2310506492116570683L;
+
    /** array of pre-calculated offsets for neighbor hexes */
    private static final Point[] kNeighbors = {new Point( 1, 0),
                                               new Point( 1,-1),

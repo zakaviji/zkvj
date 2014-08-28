@@ -1,29 +1,36 @@
 package com.zkvj.conjurers.core;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.zkvj.games.Player;
-import com.zkvj.games.cards.Deck;
 
 /**
  * Class used to keep track of everything related to the player.
  */
-public class Conjurer extends Player implements Entity
+public class Conjurer extends Player implements Entity, Serializable
 {
-   private Deck _deck = new Deck();
-   private List<Card> _hand = new ArrayList<Card>();
-   private int _health = Constants.kINITAL_PLAYER_HEALTH;
-   private int _energy = Constants.kINITAL_PLAYER_ENERGY;
+   private static final long serialVersionUID = 6886979304549117881L;
+   
+   private Deck _deck;
+   private List<Card> _hand;
+   private int _health;
+   private int _energy;
    
    /**
     * Constructor
     * 
     * @param aName
     */
-   public Conjurer(String aName)
+   public Conjurer(String aName, Deck aDeck)
    {
       super(aName);
+      
+      _deck = aDeck;
+      _hand = new ArrayList<Card>();
+      _health = Constants.kINITAL_PLAYER_HEALTH;
+      _energy = Constants.kINITAL_PLAYER_ENERGY;
    }
    
    /**
