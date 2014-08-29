@@ -15,7 +15,6 @@ import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.Deck;
 import com.zkvj.conjurers.core.GameData;
 import com.zkvj.conjurers.core.Message;
-import com.zkvj.conjurers.core.Message.Type;
 
 public class Launcher extends JFrame
 {
@@ -39,7 +38,7 @@ public class Launcher extends JFrame
          {
             case eLOGIN:
             {
-               if(Type.eLOGIN_ACCEPTED == aMsg.type)
+               if(Message.Type.eLOGIN_ACCEPTED == aMsg.type)
                {
                   showDesktop();
 //                  startGame(); //for testing purposes only
@@ -48,11 +47,11 @@ public class Launcher extends JFrame
             }
             case eDESKTOP:
             {
-               if(Type.eGAME_REQUEST == aMsg.type)
+               if(Message.Type.eGAME_REQUEST == aMsg.type)
                {
                   showInviteDialog(aMsg.opponent);
                }
-               else if(Type.eGAME_START == aMsg.type)
+               else if(Message.Type.eGAME_START == aMsg.type)
                {
                   startGame(aMsg.userName, aMsg.opponent);
                }
@@ -143,7 +142,7 @@ public class Launcher extends JFrame
       
       if(tResponse == JOptionPane.OK_OPTION)
       {
-         Message tAcceptMsg = new Message(Type.eGAME_ACCEPT);
+         Message tAcceptMsg = new Message(Message.Type.eGAME_ACCEPT);
          tAcceptMsg.opponent = aOpponent;
          _client.sendMessage(tAcceptMsg);
       }
@@ -155,7 +154,7 @@ public class Launcher extends JFrame
    protected void startGame(String aPlayer, String aOpponent)
    {
       Conjurer tPlayer = new Conjurer(aPlayer, new Deck());
-      Conjurer tOpponent = new Conjurer(aPlayer, new Deck());
+      Conjurer tOpponent = new Conjurer(aOpponent, new Deck());
       
       _gamePanel = new GamePanel(_client, new GameData(tPlayer, tOpponent));
       

@@ -96,10 +96,10 @@ public class ChatHistoryPanel extends JPanel
    {
       setLayout(new GridBagLayout());
       
-      GridBagConstraints tConstaints = new GridBagConstraints();
-      tConstaints.fill = GridBagConstraints.BOTH;
-      tConstaints.insets = new Insets(Constants.kUI_PADDING, Constants.kUI_PADDING,
-                                      0, Constants.kUI_PADDING);
+      GridBagConstraints tConstraints = new GridBagConstraints();
+      tConstraints.fill = GridBagConstraints.BOTH;
+      tConstraints.insets = new Insets(Constants.kUI_PADDING,
+               Constants.kUI_PADDING, 0, Constants.kUI_PADDING);
       
       _textArea = new JTextArea("Welcome to Conjurers\n", 100, 25);
       _textArea.setEditable(false);
@@ -107,18 +107,18 @@ public class ChatHistoryPanel extends JPanel
       _textArea.setWrapStyleWord(true);
       _textArea.setForeground(Color.WHITE);
       _textArea.setBackground(Constants.kUI_BKGD_COLOR);
-      tConstaints.gridy = 0;
-      tConstaints.weightx = 1;
-      tConstaints.weighty = 1;
-      add(new JScrollPane(_textArea),tConstaints);
+      tConstraints.gridy = 0;
+      tConstraints.weightx = 1;
+      tConstraints.weighty = 1;
+      add(new JScrollPane(_textArea),tConstraints);
       
       _textField = new JTextField("<enter text here>");
       _textField.setForeground(Color.WHITE);
       _textField.setBackground(Constants.kUI_BKGD_COLOR);
       _textField.addActionListener(_actionListener);
-      tConstaints.gridy = 1;
-      tConstaints.weightx = 1;
-      tConstaints.weighty = 0;
-      add(_textField,tConstaints);
+      tConstraints.gridy = 1;
+      tConstraints.weightx = 1;
+      tConstraints.weighty = 0;
+      add(_textField,tConstraints);
    }
 }

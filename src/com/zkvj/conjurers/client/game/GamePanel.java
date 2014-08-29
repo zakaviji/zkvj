@@ -28,13 +28,11 @@ public class GamePanel extends JLayeredPane
    private final GameData _data;
 
    /** display components */
-   private BoardPanel _boardPanel = null;
-   private CardDetailsArea _cardDetailsArea = null;
-   private HistoryArea _historyArea = null;
-   private HandDisplayArea _handDisplayArea = null;
-   private PlayerDetailsArea _playerArea = null;
-   private PlayerDetailsArea _oppArea = null;
-   
+   private BoardPanel _boardPanel;
+   private CardDetailsArea _cardDetailsArea;
+   private HandDisplayArea _handDisplayArea;
+   private PlayerDetailsArea _playerArea;
+   private PlayerDetailsArea _oppArea;
    private ChatHistoryPanel _chatHistoryPanel;
    
    /** mouse listener */
@@ -119,6 +117,7 @@ public class GamePanel extends JLayeredPane
    
    private void initComponents()
    {
+      //using absolute positioning, proportional to width/height 
       setLayout(null);
       
       int tWidth = getPreferredSize().width;
@@ -131,7 +130,7 @@ public class GamePanel extends JLayeredPane
       tBackground.setBackground(Constants.kBACKGROUND_COLOR);
       add(tBackground, Constants.kBACKGROUND_LAYER);
       
-      //board component is a square, which takes up the full height of the game panel
+      //board component is a square, with full height of the game panel
       _boardPanel = new BoardPanel(_data);
       _boardPanel.setLocation(new Point(tWidth/2 - tHeight/2, 0));
       _boardPanel.setSize(new Dimension(tHeight, tHeight));
@@ -140,20 +139,14 @@ public class GamePanel extends JLayeredPane
       
       //card details area
       _cardDetailsArea = new CardDetailsArea(_data);
-      _cardDetailsArea.setLocation(new Point(0, tHeight * 1/4));
-      _cardDetailsArea.setSize(new Dimension(tHeight * 1/2 * 2/3, tHeight * 1/2));
+      _cardDetailsArea.setLocation(new Point(tWidth - (tHeight * 1/3), tHeight * 1/4));
+      _cardDetailsArea.setSize(new Dimension(tHeight * 1/3, tHeight * 1/2));
       _cardDetailsArea.setBufferedImageSize(_cardDetailsArea.getSize());
       add(_cardDetailsArea, Constants.kINFO_LAYER);
       
-      //history area
-//      _historyArea = new HistoryArea(_data);
-//      _historyArea.setLocation(new Point(tWidth  * 4/5, 0));
-//      _historyArea.setSize(new Dimension(tWidth * 1/5, tHeight * 3/4));
-//      _historyArea.setBufferedImageSize(_historyArea.getSize());
-//      add(_historyArea, Constants.kINFO_LAYER);
-      
+      //chat/history area
       _chatHistoryPanel = new ChatHistoryPanel(_client, false);
-      _chatHistoryPanel.setLocation(new Point(tWidth  * 4/5, 0));
+      _chatHistoryPanel.setLocation(new Point(0,0));
       _chatHistoryPanel.setSize(new Dimension(tWidth * 1/5, tHeight * 3/4));
       add(_chatHistoryPanel, Constants.kINFO_LAYER);
       
@@ -165,17 +158,15 @@ public class GamePanel extends JLayeredPane
       add(_handDisplayArea, Constants.kINFO_LAYER);
       
       //player area
-      _playerArea = new PlayerDetailsArea(_data, true);
+      _playerArea = new PlayerDetailsArea(_client, _data.getPlayer());
       _playerArea.setLocation(new Point(0, tHeight * 3/4));
       _playerArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
-      _playerArea.setBufferedImageSize(_playerArea.getSize());
       add(_playerArea, Constants.kINFO_LAYER);
       
       //opponent area
-      _oppArea = new PlayerDetailsArea(_data, false);
-      _oppArea.setLocation(new Point(0,0));
+      _oppArea = new PlayerDetailsArea(_client, _data.getOpponent());
+      _oppArea.setLocation(new Point(tWidth  * 5/7, 0));
       _oppArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
-      _oppArea.setBufferedImageSize(_oppArea.getSize());
       add(_oppArea, Constants.kINFO_LAYER);
    }
    
