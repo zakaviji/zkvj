@@ -8,9 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.zkvj.conjurers.core.Board;
 import com.zkvj.conjurers.core.Constants;
-import com.zkvj.conjurers.core.GameData;
+import com.zkvj.conjurers.core.GameModel;
 import com.zkvj.conjurers.core.Well;
+import com.zkvj.conjurers.core.GameModel.GameModelListener;
 import com.zkvj.utils.BufferedImageComponent;
 
 /**
@@ -20,16 +22,27 @@ public class BoardPanel extends BufferedImageComponent
 {
    private static final long serialVersionUID = -1194634150725552094L;
    
-   /** game data */
-   private final GameData _data;
+   /** the game model */
+   private final GameModel _model;
+   
+   private final GameModelListener _modelListener = new GameModelListener()
+   {
+      @Override
+      public void gameDataChanged()
+      {
+         updateBufferedImage();
+         repaint();
+      }
+   };
    
    /**
     * Constructor
-    * @param aData - the game data
+    * @param aModel - the game data model
     */
-   public BoardPanel(GameData aData)
+   public BoardPanel(GameModel aModel)
    {
-      _data = aData;
+      _model = aModel;
+      _model.addListener(_modelListener);
    }
    
    /**
@@ -39,8 +52,7 @@ public class BoardPanel extends BufferedImageComponent
    //@Override
    public void draw(Graphics2D aG)
    {
-      if(null != _data &&
-         null != _data.getBoard())
+      if(null != getBoard())
       {
          //System.out.println(_data.getBoard().toString());
          
@@ -65,7 +77,7 @@ public class BoardPanel extends BufferedImageComponent
          double tBoardCenterY = tHeight / 2;
          
          //Draw the hexagonal spaces
-         for(Map.Entry<Point, Well> tEntry : _data.getBoard().getWells())
+         for(Map.Entry<Point, Well> tEntry : getBoard().getWells())
          {
             Path2D.Double tOuterHex = new Path2D.Double();
             Path2D.Double tHex = new Path2D.Double();
@@ -114,8 +126,8 @@ public class BoardPanel extends BufferedImageComponent
          
          //Draw the conjurer spaces
          List<Point> tConjurerSpaces = new ArrayList<Point>();
-         tConjurerSpaces.add(_data.getBoard().getPlayerPosition());
-         tConjurerSpaces.add(_data.getBoard().getOpponentPosition());
+         tConjurerSpaces.add(getBoard().getPlayerPosition());
+         tConjurerSpaces.add(getBoard().getOpponentPosition());
          
          for(int tJndex = 0; tJndex < tConjurerSpaces.size(); tJndex++)
          {
@@ -155,5 +167,22 @@ public class BoardPanel extends BufferedImageComponent
       {
          System.out.println("BoardPanel.draw(): WARNING: game data was null");
       }
+   }
+   
+   /**
+    * Convenience method for getting the board from the game model.
+    * @return Board
+    */
+   private Board getBoard()
+   {
+      Board tReturn = null;
+      
+      if(null != _model &&
+         null != _model.getGameData())
+      {
+         tReturn = _model.getGameData().getBoard();
+      }
+      
+      return tReturn;
    }
 }

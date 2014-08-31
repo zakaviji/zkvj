@@ -16,10 +16,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.zkvj.conjurers.client.Client;
-import com.zkvj.conjurers.client.Client.ClientMessageHandler;
 import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
+import com.zkvj.conjurers.core.GameData;
+import com.zkvj.conjurers.core.GameModel;
 import com.zkvj.conjurers.core.Message;
+import com.zkvj.conjurers.core.GameModel.GameModelListener;
+import com.zkvj.conjurers.core.Message.Type;
 
 /**
  * Class responsible for drawing the area which displays a close-up image of the currently
@@ -29,8 +32,11 @@ public class PlayerDetailsArea extends JPanel
 {
    private static final long serialVersionUID = -6000029103485694628L;
 
-   private Client _client;
-   private final Conjurer _player;
+   private final Client _client;
+   private final GameModel _model;
+   
+   /** keep track of which player is shown on this panel */
+   private final int _playerID;
    
    /** dynamic elements of this panel */
    private JSpinner _health;
@@ -45,34 +51,52 @@ public class PlayerDetailsArea extends JPanel
       {
          if(aEvent.getSource() == _health)
          {
-//            Number tHealth = ((SpinnerNumberModel)_health.getModel()).getNumber();
-//            
-//            System.out.println("Health for " + _player.getName() + 
-//                     " changed to " + tHealth);
+            int tHealth = ((SpinnerNumberModel)_health.getModel()).
+                     getNumber().intValue();
+            
+            /**
+             * If health has changed, but game model has not changed yet,
+             * then this change was made via our GUI, and we need to send
+             * our updated game data to the server
+             */
+            if(tHealth != getPlayer().getHealth())
+            {
+               getPlayer().setHealth(tHealth);
+
+               Message tGameDataMsg = new Message(Type.eGAME_DATA);
+               tGameDataMsg.gameData = new GameData(_model.getGameData());
+               
+               _client.sendMessage(tGameDataMsg);
+            }
          }
       }
    };
    
-   private final ClientMessageHandler _messageHandler = new ClientMessageHandler()
+   private final GameModelListener _modelListener = new GameModelListener()
    {
       @Override
-      public void handleMessage(Message aMsg)
+      public void gameDataChanged()
       {
-         //todo?
+         _health.setValue(new Integer(getPlayer().getHealth()));
+         _energy.setText(""+getPlayer().getEnergy());
+         _deck.setText(""+getPlayer().getDeck().size());
+         _hand.setText(""+getPlayer().getHand().size());
       }
    };
    
    /**
     * Constructor
     * @param aClient - the client
-    * @param aPlayer - the player to show on this panel
+    * @param aModel - the game data model
+    * @param aPlayerID - the ID for the player displayed on this panel
     */
-   public PlayerDetailsArea(Client aClient, Conjurer aPlayer)
+   public PlayerDetailsArea(Client aClient, GameModel aModel, int aPlayerID)
    {
       _client = aClient;
-      _player = aPlayer;
-
-      _client.addMessageHandler(_messageHandler);
+      _model = aModel;
+      _playerID = aPlayerID;
+      
+      _model.addListener(_modelListener);
       
       setBackground(Constants.kBACKGROUND_COLOR);
       initComponents();
@@ -97,7 +121,7 @@ public class PlayerDetailsArea extends JPanel
       GridBagConstraints tConstraints = new GridBagConstraints();
       tConstraints.fill = GridBagConstraints.BOTH;
       
-      JLabel tName = new JLabel(_player.getName());
+      JLabel tName = new JLabel(getPlayer().getName());
       tName.setForeground(Color.WHITE);
       Font tFont = new Font(tName.getFont().getName(), Font.BOLD, 20);
       tName.setFont(tFont);
@@ -120,7 +144,7 @@ public class PlayerDetailsArea extends JPanel
       tHealthLabel.setForeground(Color.WHITE);
       tHealthPanel.add(tHealthLabel);
 
-      SpinnerModel tModel = new SpinnerNumberModel(_player.getHealth(),
+      SpinnerModel tModel = new SpinnerNumberModel(getPlayer().getHealth(),
                                                    Constants.kMIN_PLAYER_HEALTH,
                                                    Constants.kMAX_PLAYER_HEALTH,
                                                    1);
@@ -152,7 +176,7 @@ public class PlayerDetailsArea extends JPanel
       tEnergyLabel.setForeground(Color.WHITE);
       tEnergyPanel.add(tEnergyLabel);
       
-      _energy = new JLabel(""+_player.getEnergy());
+      _energy = new JLabel(""+getPlayer().getEnergy());
       _energy.setFont(tFont);
       _energy.setForeground(Color.WHITE);
       tEnergyPanel.add(_energy);
@@ -171,7 +195,7 @@ public class PlayerDetailsArea extends JPanel
       tDeckLabel.setForeground(Color.WHITE);
       tDeckPanel.add(tDeckLabel);
       
-      _deck = new JLabel(""+_player.getDeck().size());
+      _deck = new JLabel(""+getPlayer().getDeck().size());
       _deck.setFont(tFont);
       _deck.setForeground(Color.WHITE);
       tDeckPanel.add(_deck);
@@ -190,7 +214,7 @@ public class PlayerDetailsArea extends JPanel
       tHandLabel.setForeground(Color.WHITE);
       tHandPanel.add(tHandLabel);
       
-      _hand = new JLabel(""+_player.getHand().size());
+      _hand = new JLabel(""+getPlayer().getHand().size());
       _hand.setFont(tFont);
       _hand.setForeground(Color.WHITE);
       tHandPanel.add(_hand);
@@ -200,5 +224,14 @@ public class PlayerDetailsArea extends JPanel
       tMainPanel.add(tHandPanel, tConstraints);
       
       this.add(tMainPanel, tMainPanelConstraints);
+   }
+   
+   /**
+    * Convenience method for getting the player displayed by this panel.
+    * @return Conjurer
+    */
+   private Conjurer getPlayer()
+   {
+      return _model.getGameData().getPlayer(_playerID);
    }
 }

@@ -67,7 +67,7 @@ public class Message implements Serializable
    public List<String> userList;
    
    /**
-    * used for all eGAME_* messages
+    * used for eGAME_REQUEST and eGAME_START messages
     */
    public String opponent;
    

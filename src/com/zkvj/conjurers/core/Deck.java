@@ -34,6 +34,15 @@ public class Deck implements Serializable
    }
    
    /**
+    * Copy constructor
+    * @param aDeck
+    */
+   public Deck(Deck aDeck)
+   {
+      _cards = new ArrayList<Card>(aDeck._cards);
+   }
+
+   /**
     * @return the cards
     */
    public List<Card> getCards()

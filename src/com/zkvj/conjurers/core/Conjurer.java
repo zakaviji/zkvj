@@ -13,6 +13,11 @@ public class Conjurer extends Player implements Entity, Serializable
 {
    private static final long serialVersionUID = 6886979304549117881L;
    
+   /** Constants used to identify which player is which */
+   public static final int kPLAYER_A = 0;
+   public static final int kPLAYER_B = 1;
+   
+   private final int _playerID;
    private Deck _deck;
    private List<Card> _hand;
    private int _health;
@@ -23,16 +28,32 @@ public class Conjurer extends Player implements Entity, Serializable
     * 
     * @param aName
     */
-   public Conjurer(String aName, Deck aDeck)
+   public Conjurer(String aName, int aPlayerID, Deck aDeck)
    {
       super(aName);
       
+      _playerID = aPlayerID;
       _deck = aDeck;
       _hand = new ArrayList<Card>();
       _health = Constants.kINITAL_PLAYER_HEALTH;
       _energy = Constants.kINITAL_PLAYER_ENERGY;
    }
    
+   /**
+    * Copy constructor
+    * @param aPlayerA
+    */
+   public Conjurer(Conjurer aConjurer)
+   {
+      super(aConjurer.getName());
+      
+      _playerID = aConjurer._playerID;
+      _deck = new Deck(aConjurer._deck);
+      _hand = new ArrayList<Card>(aConjurer.getHand());
+      _health = aConjurer._health;
+      _energy = aConjurer._energy;
+   }
+
    /**
     * Returns the deck object for this conjurer.
     * 
@@ -91,5 +112,25 @@ public class Conjurer extends Player implements Entity, Serializable
    public void setHealth(int aHealth)
    {
       _health = aHealth;
+   }
+
+   /**
+    * @return the playerID
+    */
+   public int getPlayerID()
+   {
+      return _playerID;
+   }
+
+   /**
+    * Updates this Conjurer object with data from the given object.
+    * @param aConjurer
+    */
+   public void updateFrom(Conjurer aConjurer)
+   {
+      _health = aConjurer._health;
+      _energy = aConjurer._energy;
+      _deck = aConjurer._deck;
+      _hand = aConjurer._hand;
    }
 }

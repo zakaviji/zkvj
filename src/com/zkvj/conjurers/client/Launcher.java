@@ -9,11 +9,11 @@ import javax.swing.JOptionPane;
 import com.zkvj.conjurers.client.Client.ClientMessageHandler;
 import com.zkvj.conjurers.client.desktop.DesktopPanel;
 import com.zkvj.conjurers.client.game.GamePanel;
+import com.zkvj.conjurers.core.CardDB;
 import com.zkvj.conjurers.core.ClientState;
-import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
-import com.zkvj.conjurers.core.Deck;
 import com.zkvj.conjurers.core.GameData;
+import com.zkvj.conjurers.core.GameModel;
 import com.zkvj.conjurers.core.Message;
 
 public class Launcher extends JFrame
@@ -40,6 +40,7 @@ public class Launcher extends JFrame
             {
                if(Message.Type.eLOGIN_ACCEPTED == aMsg.type)
                {
+                  CardDB.loadDefaultCards();
                   showDesktop();
                }
                break;
@@ -52,7 +53,7 @@ public class Launcher extends JFrame
                }
                else if(Message.Type.eGAME_START == aMsg.type)
                {
-                  startGame(aMsg.userName, aMsg.opponent);
+                  startGame(aMsg.gameData);
                }
                break;
             }
@@ -91,9 +92,8 @@ public class Launcher extends JFrame
       }
       
       _loginPanel = new LoginPanel(_client);
-      _desktopPanel = new DesktopPanel(_client);
-      
       setContentPane(_loginPanel);
+      
       setResizable(false);
       setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       
@@ -115,7 +115,14 @@ public class Launcher extends JFrame
     */
    protected void showDesktop()
    {
-      _desktopPanel.reset();
+      if(null == _desktopPanel)
+      {
+         _desktopPanel = new DesktopPanel(_client);
+      }
+      else
+      {
+         _desktopPanel.reset();
+      }
       
       _client.setState(ClientState.eDESKTOP);
       
@@ -149,13 +156,11 @@ public class Launcher extends JFrame
 
    /**
     * Start a new game and switch to game view
+    * @param aData - the GameData object for this game
     */
-   protected void startGame(String aPlayer, String aOpponent)
+   protected void startGame(GameData aData)
    {
-      Conjurer tPlayer = new Conjurer(aPlayer, new Deck());
-      Conjurer tOpponent = new Conjurer(aOpponent, new Deck());
-      
-      _gamePanel = new GamePanel(_client, new GameData(tPlayer, tOpponent));
+      _gamePanel = new GamePanel(_client, new GameModel(aData));
       
       _client.setState(ClientState.eGAME);
       

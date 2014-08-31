@@ -213,6 +213,7 @@ public class Client  {
          }
       }
       // done disconnect
+      scan.close();
       client.disconnect(); 
    }
 

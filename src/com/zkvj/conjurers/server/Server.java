@@ -7,10 +7,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.zkvj.conjurers.core.Card;
+import com.zkvj.conjurers.core.CardDB;
 import com.zkvj.conjurers.core.ClientState;
+import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
+import com.zkvj.conjurers.core.Deck;
+import com.zkvj.conjurers.core.GameData;
 import com.zkvj.conjurers.core.Message;
 import com.zkvj.conjurers.core.Message.Type;
 
@@ -120,6 +126,8 @@ public class Server
    {
       int tPortNumber = Constants.kPORT_NUMBER;
       
+      CardDB.loadDefaultCards();
+      
       Server tServer = new Server(tPortNumber);
       tServer.start();
    }
@@ -202,7 +210,7 @@ public class Server
    }
    
    /**
-    * Broadcast a message to all clients
+    * Broadcast a message to all clients who are logged in
     */
    private void broadcastMessage(Message aMsg)
    {
@@ -212,15 +220,48 @@ public class Server
          {
             ServerThread tThread = tEntry.getValue();
             
-            if(!tThread.sendMessage(aMsg))
+            //only broadcast to clients who are logged in
+            if(ClientState.eLOGIN != tThread._state)
             {
-               _userNameMap.remove(tThread._userName);
-               _threadMap.remove(tEntry.getKey());
-               tThread.close();
-               System.out.println("Server: disconnected client " + tThread._userName);
+               if(!tThread.sendMessage(aMsg))
+               {
+                  _userNameMap.remove(tThread._userName);
+                  _threadMap.remove(tEntry.getKey());
+                  tThread.close();
+                  System.out.println("Server: disconnected client " + tThread._userName);
+               }
             }
          }
       }
+   }
+   
+   /**
+    * Constructs and returns a default deck for testing purposes.
+    * @return Deck
+    */
+   private Deck getDefaultDeck()
+   {
+      List<Card> tList = new ArrayList<>();
+      tList.add(CardDB.getCard(1));
+      tList.add(CardDB.getCard(1));
+      tList.add(CardDB.getCard(1));
+      tList.add(CardDB.getCard(2));
+      tList.add(CardDB.getCard(2));
+      tList.add(CardDB.getCard(2));
+      tList.add(CardDB.getCard(3));
+      tList.add(CardDB.getCard(3));
+      tList.add(CardDB.getCard(3));
+      tList.add(CardDB.getCard(4));
+      tList.add(CardDB.getCard(4));
+      tList.add(CardDB.getCard(4));
+      tList.add(CardDB.getCard(5));
+      tList.add(CardDB.getCard(5));
+      tList.add(CardDB.getCard(5));
+      tList.add(CardDB.getCard(6));
+      tList.add(CardDB.getCard(6));
+      tList.add(CardDB.getCard(6));
+      
+      return new Deck(tList);
    }
    
    /**
@@ -312,13 +353,11 @@ public class Server
          tThreadB._opponentID = tClientA;
          
          Message tGameStartMsg = new Message(Type.eGAME_START);
+         tGameStartMsg.gameData = new GameData(
+                  new Conjurer(aUserA, Conjurer.kPLAYER_A, getDefaultDeck()),
+                  new Conjurer(aUserB, Conjurer.kPLAYER_B, getDefaultDeck()));
          
-         //todo: add game (deck) info to game start message
-         
-         tGameStartMsg.opponent = aUserB;
          sendMessageToClient(tClientA, tGameStartMsg);
-         
-         tGameStartMsg.opponent = aUserA;
          sendMessageToClient(tClientB, tGameStartMsg);
       }
    }
@@ -460,11 +499,14 @@ public class Server
                {
                   if(Type.eLOGIN_REQUEST == aMsg.type)
                   {
+                     boolean tSendUserList = false;
+                     
                      Message tReplyMsg;
                      if(authenticateLogin(aMsg.userName, aMsg.password))
                      {
                         _userName = aMsg.userName;
                         _state = ClientState.eDESKTOP;
+                        tSendUserList = true;
                         
                         synchronized (_threadMap)
                         {
@@ -473,15 +515,19 @@ public class Server
 
                         tReplyMsg = new Message(Type.eLOGIN_ACCEPTED);
                         System.out.println("ServerThread: user " + _userName + " logged in successfully");
-                        
-                        broadcastUserList();
                      }
                      else
                      {
                         tReplyMsg = new Message(Type.eLOGIN_REJECTED);
                         System.out.println("ServerThread: login was rejected");
                      }
+                     
                      sendMessage(tReplyMsg);
+                     
+                     if(tSendUserList)
+                     {
+                        broadcastUserList();
+                     }
                   }
                   else
                   {
@@ -522,6 +568,11 @@ public class Server
                   if(Type.eGAME_CHAT == aMsg.type)
                   {
                      sendMessage(aMsg);//echo back to self
+                     sendMessageToClient(_opponentID, aMsg);//send to opponent
+                  }
+                  else if(Type.eGAME_DATA == aMsg.type)
+                  {
+                     //sendMessage(aMsg);//echo back to self
                      sendMessageToClient(_opponentID, aMsg);//send to opponent
                   }
                   else

@@ -19,11 +19,10 @@ public abstract class BufferedImageComponent extends JComponent
    
    /**
     * Constructor
-    * @param aDim - default/initial size of this component
     */
    public BufferedImageComponent()
    {
-      setBufferedImageSize(new Dimension(1,1));
+      setBufferedImageSize(new Dimension(1, 1));
    }
    
    /**

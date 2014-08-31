@@ -39,7 +39,7 @@ public final class Constants
    /** Layers */
    public static final Integer kBACKGROUND_LAYER = new Integer(0);
    public static final Integer kBOARD_LAYER = new Integer(1);
-   public static final Integer kINFO_LAYER = new Integer(2);
+   public static final Integer kUI_LAYER = new Integer(2);
    
    /** Number of players */
    public static final int kNUM_PLAYERS = 2;

@@ -14,6 +14,16 @@ public final class CardDB
    private static final Map<Integer, Card> kDB = new HashMap<Integer, Card>();
    
    /**
+    * Returns the Card with the given ID, if any, else returns null.
+    * @param aID - card ID number
+    * @return Card
+    */
+   public static Card getCard(Integer aID)
+   {
+      return kDB.get(aID);
+   }
+   
+   /**
     * Loads default cards (for testing purposes).
     */
    public static void loadDefaultCards()

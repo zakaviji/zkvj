@@ -1,31 +1,26 @@
 package com.zkvj.conjurers.client.game;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
 import com.zkvj.conjurers.client.Client;
+import com.zkvj.conjurers.client.Client.ClientMessageHandler;
 import com.zkvj.conjurers.client.desktop.ChatHistoryPanel;
+import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
-import com.zkvj.conjurers.core.GameData;
-import com.zkvj.utils.BufferedImageComponent;
+import com.zkvj.conjurers.core.GameModel;
+import com.zkvj.conjurers.core.Message;
+import com.zkvj.conjurers.core.Message.Type;
 
 public class GamePanel extends JLayeredPane
 {
    private static final long serialVersionUID = 3916891242722466815L;
    
-   private Client _client;
-   
-   /** game data */
-   private final GameData _data;
+   private final Client _client;
+   private final GameModel _model;
 
    /** display components */
    private BoardPanel _boardPanel;
@@ -35,89 +30,53 @@ public class GamePanel extends JLayeredPane
    private PlayerDetailsArea _oppArea;
    private ChatHistoryPanel _chatHistoryPanel;
    
-   /** mouse listener */
-   private final MouseListener _mouseListener = new MouseListener()
+   /** listener for messages received by this client */
+   private final ClientMessageHandler _messageHandler = new ClientMessageHandler()
    {
       @Override
-      public void mouseClicked(MouseEvent aEvent)
+      public void handleMessage(Message aMsg)
       {
-         updateDisplayComponents();
-         repaint();
-      }
-
-      @Override
-      public void mousePressed(MouseEvent aEvent) {}
-
-      @Override
-      public void mouseReleased(MouseEvent aEvent) {}
-
-      @Override
-      public void mouseEntered(MouseEvent aEvent) {}
-
-      @Override
-      public void mouseExited(MouseEvent aEvent) {}
-   };
-
-   /** Mouse listener */
-   private final MouseMotionListener _mouseMotionListener =
-      new MouseMotionListener()
-   {
-      @Override
-      public void mouseDragged(MouseEvent aEvent){}
-
-      @Override
-      public void mouseMoved(MouseEvent aEvent){}
-   };
-
-   /** Key listener */
-   private final KeyListener _keyListener = new KeyListener()
-   {
-      @Override
-      public void keyPressed(KeyEvent aEvent)
-      {
-         switch(aEvent.getKeyCode())
+         if(Type.eGAME_DATA == aMsg.type)
          {
-            case KeyEvent.VK_R:
-               _data.getBoard().randomizeBoard();
-               break;
-            default:
-               break;
+            //updates the game data and triggers components to refresh
+            _model.setGameData(aMsg.gameData);
          }
-
-         updateDisplayComponents();
-         repaint();
       }
-
-      @Override
-      public void keyTyped(KeyEvent aEvent){}
-
-      @Override
-      public void keyReleased(KeyEvent aEvent){}
    };
    
    /**
     * Constructor
     * @param aData - the game data
     */
-   public GamePanel(Client aClient, GameData aData)
+   public GamePanel(Client aClient, GameModel aModel)
    {
       _client = aClient;
-      _data = aData;
+      _model = aModel;
+      
+      _client.addMessageHandler(_messageHandler);
       
       this.setPreferredSize(new Dimension(Constants.kWIDTH, Constants.kHEIGHT));
       this.setFocusable(true);
-      this.addMouseListener(_mouseListener);
-      this.addMouseMotionListener(_mouseMotionListener);
-      this.addKeyListener(_keyListener);
       
       initComponents();
       
-      updateDisplayComponents();
+      _boardPanel.updateBufferedImage();
    }
    
    private void initComponents()
    {
-      //using absolute positioning, proportional to width/height 
+      int tPlayerID = Conjurer.kPLAYER_B;
+      int tOpponentID = Conjurer.kPLAYER_A;
+      
+      //determine which player we are
+      if(_model.getGameData().getPlayer(Conjurer.kPLAYER_A).getName().
+               equals(_client.getUserName()))
+      {
+         tPlayerID = Conjurer.kPLAYER_A;
+         tOpponentID = Conjurer.kPLAYER_B;
+      }
+      
+      //using absolute positioning, proportional to width/height
       setLayout(null);
       
       int tWidth = getPreferredSize().width;
@@ -131,55 +90,41 @@ public class GamePanel extends JLayeredPane
       add(tBackground, Constants.kBACKGROUND_LAYER);
       
       //board component is a square, with full height of the game panel
-      _boardPanel = new BoardPanel(_data);
+      _boardPanel = new BoardPanel(_model);
       _boardPanel.setLocation(new Point(tWidth/2 - tHeight/2, 0));
       _boardPanel.setSize(new Dimension(tHeight, tHeight));
       _boardPanel.setBufferedImageSize(_boardPanel.getSize());
       add(_boardPanel, Constants.kBOARD_LAYER);
       
       //card details area
-      _cardDetailsArea = new CardDetailsArea(_data);
+      _cardDetailsArea = new CardDetailsArea();
       _cardDetailsArea.setLocation(new Point(tWidth - (tHeight * 1/3), tHeight * 1/4));
       _cardDetailsArea.setSize(new Dimension(tHeight * 1/3, tHeight * 1/2));
       _cardDetailsArea.setBufferedImageSize(_cardDetailsArea.getSize());
-      add(_cardDetailsArea, Constants.kINFO_LAYER);
+      add(_cardDetailsArea, Constants.kUI_LAYER);
       
       //chat/history area
       _chatHistoryPanel = new ChatHistoryPanel(_client, false);
       _chatHistoryPanel.setLocation(new Point(0,0));
       _chatHistoryPanel.setSize(new Dimension(tWidth * 1/5, tHeight * 3/4));
-      add(_chatHistoryPanel, Constants.kINFO_LAYER);
+      add(_chatHistoryPanel, Constants.kUI_LAYER);
       
       //hand display area
-      _handDisplayArea = new HandDisplayArea(_client, _data.getPlayer());
+      _handDisplayArea = new HandDisplayArea(_client, _model, tPlayerID);
       _handDisplayArea.setLocation(new Point(tWidth  * 5/7, tHeight * 3/4));
       _handDisplayArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
-      add(_handDisplayArea, Constants.kINFO_LAYER);
+      add(_handDisplayArea, Constants.kUI_LAYER);
       
       //player area
-      _playerArea = new PlayerDetailsArea(_client, _data.getPlayer());
+      _playerArea = new PlayerDetailsArea(_client, _model, tPlayerID);
       _playerArea.setLocation(new Point(0, tHeight * 3/4));
       _playerArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
-      add(_playerArea, Constants.kINFO_LAYER);
+      add(_playerArea, Constants.kUI_LAYER);
       
       //opponent area
-      _oppArea = new PlayerDetailsArea(_client, _data.getOpponent());
+      _oppArea = new PlayerDetailsArea(_client, _model, tOpponentID);
       _oppArea.setLocation(new Point(tWidth  * 5/7, 0));
       _oppArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
-      add(_oppArea, Constants.kINFO_LAYER);
-   }
-   
-   /**
-    * Calls updateBufferedImage on all components.
-    */
-   private void updateDisplayComponents()
-   {
-      for(Component tComp : getComponents())
-      {
-         if(BufferedImageComponent.class.isInstance(tComp))
-         {
-            ((BufferedImageComponent)tComp).updateBufferedImage();
-         }
-      }
+      add(_oppArea, Constants.kUI_LAYER);
    }
 }

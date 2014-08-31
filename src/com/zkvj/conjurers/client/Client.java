@@ -67,6 +67,25 @@ public class Client
    }
    
    /**
+    * Call all message handlers to inform them a message has been received.
+    * @param aMsg
+    */
+   private void fireMessageReceived(Message aMsg)
+   {
+      //hold lock while creating temp copy of list
+      List<ClientMessageHandler> tCopy;
+      synchronized (_messageHandlers)
+      {
+         tCopy = new ArrayList<ClientMessageHandler>(_messageHandlers);
+      }
+
+      for(ClientMessageHandler tHandler : tCopy)
+      {
+         tHandler.handleMessage(aMsg);
+      }
+   }
+   
+   /**
     * @return the userName
     */
    public String getUserName()
@@ -173,21 +192,13 @@ public class Client
             _userName = aMsg.userName;
          }
          
-         //hold lock while creating temp copy of list
-         List<ClientMessageHandler> tCopy;
-         synchronized (_messageHandlers)
-         {
-            tCopy = new ArrayList<ClientMessageHandler>(_messageHandlers);
-         }
-
-         for(ClientMessageHandler tHandler : tCopy)
-         {
-            tHandler.handleMessage(aMsg);
-         }
+         fireMessageReceived(aMsg);
       }
       else
       {
          System.err.println("Client: processMessage: given message was null");
+//         Thread.dumpStack();
+//         System.exit(1);
       }
    }
    

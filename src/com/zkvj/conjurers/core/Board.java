@@ -23,14 +23,14 @@ public class Board implements Serializable
                                               new Point( 0, 1)};
    
    /** map of the wells which make up the board */
-   private final Map<Point, Well> _wells = new HashMap<Point, Well>();
+   private Map<Point, Well> _wells = new HashMap<Point, Well>();
    
    /** map of the entities on the game board */
-   private final Map<Point, Entity> _entities = new HashMap<Point, Entity>();
+   private Map<Point, Entity> _entities = new HashMap<Point, Entity>();
    
-   /** inital player positions */
-   private Point _playerPosition = Constants.kDEFAULT_PLAYER_POS;
-   private Point _opponentPosition = Constants.kDEFAULT_OPPONENT_POS;
+   /** player positions */
+   private Point _playerPosition;
+   private Point _opponentPosition;
    
    /**
     * Constructor
@@ -40,6 +40,18 @@ public class Board implements Serializable
       initializeBoard();
    }
    
+   /**
+    * Copy constructor
+    * @param aBoard
+    */
+   public Board(Board aBoard)
+   {
+      _wells = new HashMap<Point, Well>(aBoard._wells);
+      _entities = new HashMap<Point, Entity>(aBoard._entities);
+      _playerPosition = new Point(aBoard._playerPosition);
+      _opponentPosition = new Point(aBoard._opponentPosition);
+   }
+
    /**
     * Prepares the board for a new game.
     */
@@ -247,5 +259,17 @@ public class Board implements Serializable
    public void setOpponentPosition(Point aOpponentPosition)
    {
       _opponentPosition = aOpponentPosition;
+   }
+
+   /**
+    * Update this Board object with data from the given object
+    * @param aBoard
+    */
+   public void updateFrom(Board aBoard)
+   {
+      _wells = aBoard._wells;
+      _entities = aBoard._entities;
+      _playerPosition = aBoard._playerPosition;
+      _opponentPosition = aBoard._opponentPosition;
    }
 }

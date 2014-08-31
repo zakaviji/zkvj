@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -13,10 +15,11 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import com.zkvj.conjurers.client.Client;
-import com.zkvj.conjurers.client.Client.ClientMessageHandler;
+import com.zkvj.conjurers.core.Card;
 import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
-import com.zkvj.conjurers.core.Message;
+import com.zkvj.conjurers.core.GameModel;
+import com.zkvj.conjurers.core.GameModel.GameModelListener;
 
 /**
  * Class responsible for drawing the area which displays a .
@@ -25,8 +28,11 @@ public class HandDisplayArea extends JPanel
 {
    private static final long serialVersionUID = 8520685473956498948L;
 
-   private Client _client;
-   private final Conjurer _player;
+   private final Client _client;
+   private final GameModel _model;
+   
+   /** keep track of which player is us */
+   private final int _playerID;
    
    private HandTableModel _tableModel;
    private JTable _table;
@@ -42,31 +48,36 @@ public class HandDisplayArea extends JPanel
          if(tSelectedRow >= 0 &&
             tSelectedRow < _tableModel.getRowCount())
          {
-            //todo
+            //todo: update focus card based on selection
+            
+            
          }
+         
+         //todo: play selected card?
       }
    };
    
-   private final ClientMessageHandler _messageHandler = new ClientMessageHandler()
+   private final GameModelListener _modelListener = new GameModelListener()
    {
       @Override
-      public void handleMessage(Message aMsg)
+      public void gameDataChanged()
       {
-         //todo?
+         _tableModel.setHand(getPlayer().getHand());
       }
    };
    
    /**
     * Constructor
     * @param aClient
-    * @param aPlayer
+    * @param aModel
     */
-   public HandDisplayArea(Client aClient, Conjurer aPlayer)
+   public HandDisplayArea(Client aClient, GameModel aModel, int aPlayerID)
    {
       _client = aClient;
-      _player = aPlayer;
-
-      _client.addMessageHandler(_messageHandler);
+      _model = aModel;
+      _playerID = aPlayerID;
+      
+      _model.addListener(_modelListener);
       
       setBackground(Constants.kBACKGROUND_COLOR);
       initComponents();
@@ -96,6 +107,7 @@ public class HandDisplayArea extends JPanel
       tConstraints.gridy = 0;
 
       _tableModel = new HandTableModel();
+      _tableModel.setHand(getPlayer().getHand());
       _table = new JTable(_tableModel);
       _table.setTableHeader(null);
       _table.setBackground(Constants.kUI_BKGD_COLOR);
@@ -110,11 +122,22 @@ public class HandDisplayArea extends JPanel
    }
    
    /**
+    * Convenience method for getting the player from the model.
+    * @return Conjurer
+    */
+   private Conjurer getPlayer()
+   {
+      return _model.getGameData().getPlayer(_playerID);
+   }
+   
+   /**
     * Model for the hand table
     */
    private class HandTableModel extends AbstractTableModel
    {
       private static final long serialVersionUID = 7677048714758679696L;
+      
+      private List<Card> _hand = new ArrayList<Card>();
 
       @Override
       public int getColumnCount()
@@ -125,7 +148,7 @@ public class HandDisplayArea extends JPanel
       @Override
       public int getRowCount()
       {
-         return _player.getHand().size();
+         return _hand.size();
       }
 
       @Override
@@ -133,18 +156,18 @@ public class HandDisplayArea extends JPanel
       {
          Object tReturn = null;
          
-         if(aRow >= 0 && aRow < _player.getHand().size())
+         if(aRow >= 0 && aRow < _hand.size())
          {
             switch(aCol)
             {
                case 0:
                {
-                  tReturn = _player.getHand().get(aRow).getName();
+                  tReturn = _hand.get(aRow).getName();
                   break;
                }
                case 1:
                {
-                  tReturn = _player.getHand().get(aRow).getEnergyCost();
+                  tReturn = _hand.get(aRow).getEnergyCost();
                   break;
                }
                default:
@@ -160,12 +183,20 @@ public class HandDisplayArea extends JPanel
       }
       
       /**
-       * Call this to indicate that player's hand has changed, and the
-       * table should be redrawn.
+       * Sets the hand for this model.
+       * @param aHand
        */
-      public void handChanged()
+      public void setHand(List<Card> aHand)
       {
-         fireTableDataChanged();
+         if(null != aHand)
+         {
+            _hand = aHand;
+            fireTableDataChanged();
+         }
+         else
+         {
+            System.err.println("HandTableModel: setHand: given list was null");
+         }
       }
    }
 }
