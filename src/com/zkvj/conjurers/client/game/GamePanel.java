@@ -151,10 +151,9 @@ public class GamePanel extends JLayeredPane
       add(_chatHistoryPanel, Constants.kINFO_LAYER);
       
       //hand display area
-      _handDisplayArea = new HandDisplayArea(_data);
+      _handDisplayArea = new HandDisplayArea(_client, _data.getPlayer());
       _handDisplayArea.setLocation(new Point(tWidth  * 5/7, tHeight * 3/4));
       _handDisplayArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
-      _handDisplayArea.setBufferedImageSize(_handDisplayArea.getSize());
       add(_handDisplayArea, Constants.kINFO_LAYER);
       
       //player area

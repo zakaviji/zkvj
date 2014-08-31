@@ -177,6 +177,9 @@ public class PlayerListPanel extends JPanel
       _inviteButton.setText(kINVITE);
    }
    
+   /**
+    * Model for the player list table
+    */
    private class PlayerListTableModel extends AbstractTableModel
    {
       private static final long serialVersionUID = -8903469997553242200L;

@@ -27,8 +27,8 @@ public class ChatHistoryPanel extends JPanel
    
    private Client _client;
    
-   /** true for the desktop chat panel, false for game chat panel */
-   private boolean _desktopMode;
+   /** desktop chat or game chat */
+   private Message.Type _chatMessageType;
    
    private final ActionListener _actionListener = new ActionListener()
    {
@@ -42,17 +42,7 @@ public class ChatHistoryPanel extends JPanel
             String tText = _client.getUserName() + ": " + _textField.getText();
             _textField.setText("");
             
-            Message tChatMsg;
-            
-            if(_desktopMode)
-            {
-               tChatMsg = new Message(Type.eDESKTOP_CHAT);
-            }
-            else
-            {
-               tChatMsg = new Message(Type.eGAME_CHAT);
-            }
-            
+            Message tChatMsg = new Message(_chatMessageType);
             tChatMsg.chatMessage = tText;
             _client.sendMessage(tChatMsg);
          }
@@ -64,8 +54,7 @@ public class ChatHistoryPanel extends JPanel
       @Override
       public void handleMessage(Message aMsg)
       {
-         if((_desktopMode && Type.eDESKTOP_CHAT == aMsg.type) ||
-            (!_desktopMode && Type.eGAME_CHAT == aMsg.type))
+         if(_chatMessageType == aMsg.type)
          {
             _textArea.append(aMsg.chatMessage + "\n");
          }
@@ -80,7 +69,7 @@ public class ChatHistoryPanel extends JPanel
    public ChatHistoryPanel(Client aClient, boolean aDesktopMode)
    {
       _client = aClient;
-      _desktopMode = aDesktopMode;
+      _chatMessageType = (aDesktopMode)? Type.eDESKTOP_CHAT : Type.eGAME_CHAT;
       
       setBackground(Constants.kBACKGROUND_COLOR);
       

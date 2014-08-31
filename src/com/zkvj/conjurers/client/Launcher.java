@@ -41,7 +41,6 @@ public class Launcher extends JFrame
                if(Message.Type.eLOGIN_ACCEPTED == aMsg.type)
                {
                   showDesktop();
-//                  startGame(); //for testing purposes only
                }
                break;
             }

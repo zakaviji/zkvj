@@ -36,6 +36,7 @@ public class Message implements Serializable
       eDESKTOP_CHAT,
       eGAME_CHAT,
       eGAME_REQUEST,
+      eGAME_DATA,
    }
    
    /**
@@ -66,9 +67,14 @@ public class Message implements Serializable
    public List<String> userList;
    
    /**
-    * used for eGAME_REQUEST, eGAME_ACCEPT, and eGAME_START messages
+    * used for all eGAME_* messages
     */
    public String opponent;
+   
+   /**
+    * user for eGAME_START and eGAME_DATA messages
+    */
+   public GameData gameData;
    
    /**
     * Constructor
@@ -114,6 +120,11 @@ public class Message implements Serializable
       if(null != opponent && opponent.length() > 0)
       {
          tBuild.append(",opponent=").append(opponent);
+      }
+      
+      if(null != gameData)
+      {
+         tBuild.append(",gameData=yes");
       }
       
       tBuild.append("}");

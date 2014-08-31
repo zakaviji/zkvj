@@ -47,11 +47,18 @@ public final class Constants
    /** Initial life of a player */
    public static final int kINITAL_PLAYER_HEALTH = 20;
    
+   /** Bounds on player health */
+   public static final int kMAX_PLAYER_HEALTH = 99;
+   public static final int kMIN_PLAYER_HEALTH = 0; 
+   
    /** Initial energy of a player */
    public static final int kINITAL_PLAYER_ENERGY = 0;
    
    /** Initial deck size */
    public static final int kDECK_SIZE = 40;
+   
+   /** Starting hand size */
+   public static final int kINITIAL_HAND_SIZE = 5;
    
    /** Maximum hand size */
    public static final int kMAX_HAND_SIZE = 7;
