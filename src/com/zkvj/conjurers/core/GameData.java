@@ -85,7 +85,7 @@ public final class GameData implements Serializable
    }
    
    /**
-    * Toggles the turn player ID.
+    * Toggles the turn player ID and causes the new turn player to draw a card.
     */
    public void endTurn()
    {
@@ -97,5 +97,7 @@ public final class GameData implements Serializable
       {
          turnPlayerID = Conjurer.kPLAYER_A;
       }
+      
+      getPlayer(turnPlayerID).getHand().add(getPlayer(turnPlayerID).getDeck().draw());
    }
 }
