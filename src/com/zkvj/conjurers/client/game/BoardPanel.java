@@ -185,4 +185,15 @@ public class BoardPanel extends BufferedImageComponent
       
       return tReturn;
    }
+
+   /**
+    * Enables/disables this panel based on whether or not it is our turn
+    */
+   @Override
+   public void setEnabled(boolean aEnabled)
+   {
+      super.setEnabled(aEnabled);
+      
+      //todo?
+   }
 }

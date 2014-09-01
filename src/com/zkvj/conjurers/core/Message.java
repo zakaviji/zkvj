@@ -37,6 +37,7 @@ public class Message implements Serializable
       eGAME_CHAT,
       eGAME_REQUEST,
       eGAME_DATA,
+      eGAME_QUIT,
    }
    
    /**

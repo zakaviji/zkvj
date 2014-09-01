@@ -236,12 +236,47 @@ public class Server
    }
    
    /**
+    * Ends the game between the two given clients
+    * @param aClientA
+    * @param aClientB
+    */
+   private void endGame(Integer aClientA, Integer aClientB)
+   {
+      if(null != aClientA || null != aClientB)
+      {
+         ServerThread tThreadA = null, tThreadB = null;
+         
+         synchronized (_threadMap)
+         {
+            tThreadA = _threadMap.get(aClientA);
+            tThreadB = _threadMap.get(aClientB);
+         }
+  
+         Message tGameQuitMsg = new Message(Type.eGAME_QUIT);
+         
+         if(null != tThreadA)
+         {
+            tThreadA._state = ClientState.eDESKTOP;
+            tThreadA._opponentID = null;
+            sendMessageToClient(aClientA, tGameQuitMsg);
+         }
+         
+         if(null != tThreadB)
+         {
+            tThreadB._state = ClientState.eDESKTOP;
+            tThreadB._opponentID = null;
+            sendMessageToClient(aClientB, tGameQuitMsg);
+         }
+      }
+   }
+   
+   /**
     * Constructs and returns a default deck for testing purposes.
     * @return Deck
     */
    private Deck getDefaultDeck()
    {
-      List<Card> tList = new ArrayList<>();
+      List<Card> tList = new ArrayList<Card>();
       tList.add(CardDB.getCard(1));
       tList.add(CardDB.getCard(1));
       tList.add(CardDB.getCard(1));
@@ -437,6 +472,11 @@ public class Server
             if(Type.eLOGOUT == tMsg.type)
             {
                System.out.println("ServerThread: user " + _userName + " has logged out");
+               
+               if(ClientState.eGAME == _state)
+               {
+                  endGame(_clientID, _opponentID);
+               }
                break;
             }
             
@@ -574,6 +614,10 @@ public class Server
                   {
                      //sendMessage(aMsg);//echo back to self
                      sendMessageToClient(_opponentID, aMsg);//send to opponent
+                  }
+                  else if(Type.eGAME_QUIT == aMsg.type)
+                  {
+                     endGame(_clientID, _opponentID);
                   }
                   else
                   {

@@ -234,4 +234,15 @@ public class PlayerDetailsArea extends JPanel
    {
       return _model.getGameData().getPlayer(_playerID);
    }
+   
+   /**
+    * Enables/disables this panel based on whether or not it is our turn
+    */
+   @Override
+   public void setEnabled(boolean aEnabled)
+   {
+      super.setEnabled(aEnabled);
+      
+      _health.setEnabled(aEnabled);
+   }
 }

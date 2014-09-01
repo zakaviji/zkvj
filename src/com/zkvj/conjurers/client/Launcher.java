@@ -57,6 +57,15 @@ public class Launcher extends JFrame
                }
                break;
             }
+            case eGAME:
+            {
+               if(Message.Type.eGAME_QUIT == aMsg.type)
+               {
+                  showDesktop();
+                  _gamePanel = null;
+               }
+               break;
+            }
             default:
                break;
          }

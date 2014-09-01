@@ -9,7 +9,8 @@ public final class GameData implements Serializable
    private final Conjurer playerA;
    private final Conjurer playerB;
    private final Board board;
-   
+   private int turnPlayerID;
+
    /**
     * Constructor. Initializes game data to default start game state.
     * @param aPlayerA
@@ -20,6 +21,9 @@ public final class GameData implements Serializable
       playerA = aPlayerA;
       playerB = aPlayerB;
       board = new Board();
+      
+      //randomly choose who goes first
+      turnPlayerID = (Math.random() < .5)? Conjurer.kPLAYER_A : Conjurer.kPLAYER_B;
    }
    
    /**
@@ -31,6 +35,7 @@ public final class GameData implements Serializable
       playerA = new Conjurer(aGameData.playerA);
       playerB = new Conjurer(aGameData.playerB);
       board = new Board(aGameData.board);
+      turnPlayerID = aGameData.turnPlayerID;
    }
 
    /**
@@ -59,5 +64,28 @@ public final class GameData implements Serializable
       }
       
       return tReturn;
+   }
+   
+   /**
+    * @return the turnPlayerID
+    */
+   public int getTurnPlayerID()
+   {
+      return turnPlayerID;
+   }
+   
+   /**
+    * Toggles the turn player ID.
+    */
+   public void endTurn()
+   {
+      if(Conjurer.kPLAYER_A == turnPlayerID)
+      {
+         turnPlayerID = Conjurer.kPLAYER_B;
+      }
+      else
+      {
+         turnPlayerID = Conjurer.kPLAYER_A;
+      }
    }
 }

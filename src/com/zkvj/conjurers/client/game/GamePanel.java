@@ -1,9 +1,14 @@
 package com.zkvj.conjurers.client.game;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
 import javax.swing.JLayeredPane;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import com.zkvj.conjurers.client.Client;
@@ -11,8 +16,10 @@ import com.zkvj.conjurers.client.Client.ClientMessageHandler;
 import com.zkvj.conjurers.client.desktop.ChatHistoryPanel;
 import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
+import com.zkvj.conjurers.core.GameData;
 import com.zkvj.conjurers.core.GameModel;
 import com.zkvj.conjurers.core.Message;
+import com.zkvj.conjurers.core.GameModel.GameModelListener;
 import com.zkvj.conjurers.core.Message.Type;
 
 public class GamePanel extends JLayeredPane
@@ -21,6 +28,8 @@ public class GamePanel extends JLayeredPane
    
    private final Client _client;
    private final GameModel _model;
+   
+   private int _playerID;
 
    /** display components */
    private BoardPanel _boardPanel;
@@ -29,6 +38,48 @@ public class GamePanel extends JLayeredPane
    private PlayerDetailsArea _playerArea;
    private PlayerDetailsArea _oppArea;
    private ChatHistoryPanel _chatHistoryPanel;
+   
+   private JButton _endTurnButton;
+   private JButton _quitGameButton;
+   
+   /** listener for the buttons */
+   private final ActionListener _actionListener = new ActionListener()
+   {
+      @Override
+      public void actionPerformed(ActionEvent aEvent)
+      {
+         Object tSource = aEvent.getSource();
+         
+         if(tSource == _endTurnButton)
+         {
+            setEnabled(false);
+            _model.getGameData().endTurn();
+            
+            Message tEndTurnMsg = new Message(Type.eGAME_DATA);
+            tEndTurnMsg.gameData = new GameData(_model.getGameData());
+            
+            _client.sendMessage(tEndTurnMsg);
+         }
+         else if(tSource == _quitGameButton)
+         {
+            Object[] tOptions = {"Yes","Cancel"};
+            int tResponse = JOptionPane.showOptionDialog(getParent(),
+                  "Are you sure you want to quit the game?",
+                  "Confirmation",
+                  JOptionPane.OK_CANCEL_OPTION,
+                  JOptionPane.PLAIN_MESSAGE,
+                  null,
+                  tOptions,
+                  tOptions[1]);
+            
+            if(tResponse == JOptionPane.OK_OPTION)
+            {
+               Message tQuitMsg = new Message(Type.eGAME_QUIT);
+               _client.sendMessage(tQuitMsg);
+            }
+         }
+      }
+   };
    
    /** listener for messages received by this client */
    private final ClientMessageHandler _messageHandler = new ClientMessageHandler()
@@ -44,6 +95,20 @@ public class GamePanel extends JLayeredPane
       }
    };
    
+   /** listener for game data change events */
+   private final GameModelListener _modelListener = new GameModelListener()
+   {
+      @Override
+      public void gameDataChanged()
+      {
+         // if our turn status doesn't match our enabled status
+         if((_model.getGameData().getTurnPlayerID() == _playerID) != isEnabled())
+         {
+            setEnabled(_model.getGameData().getTurnPlayerID() == _playerID);
+         }
+      }
+   };
+   
    /**
     * Constructor
     * @param aData - the game data
@@ -54,25 +119,28 @@ public class GamePanel extends JLayeredPane
       _model = aModel;
       
       _client.addMessageHandler(_messageHandler);
+      _model.addListener(_modelListener);
       
       this.setPreferredSize(new Dimension(Constants.kWIDTH, Constants.kHEIGHT));
       this.setFocusable(true);
       
       initComponents();
       
+      setEnabled(_model.getGameData().getTurnPlayerID() == _playerID);
+      
       _boardPanel.updateBufferedImage();
    }
    
    private void initComponents()
    {
-      int tPlayerID = Conjurer.kPLAYER_B;
+      _playerID = Conjurer.kPLAYER_B;
       int tOpponentID = Conjurer.kPLAYER_A;
       
       //determine which player we are
       if(_model.getGameData().getPlayer(Conjurer.kPLAYER_A).getName().
                equals(_client.getUserName()))
       {
-         tPlayerID = Conjurer.kPLAYER_A;
+         _playerID = Conjurer.kPLAYER_A;
          tOpponentID = Conjurer.kPLAYER_B;
       }
       
@@ -110,13 +178,13 @@ public class GamePanel extends JLayeredPane
       add(_chatHistoryPanel, Constants.kUI_LAYER);
       
       //hand display area
-      _handDisplayArea = new HandDisplayArea(_client, _model, tPlayerID);
+      _handDisplayArea = new HandDisplayArea(_client, _model, _playerID);
       _handDisplayArea.setLocation(new Point(tWidth  * 5/7, tHeight * 3/4));
       _handDisplayArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
       add(_handDisplayArea, Constants.kUI_LAYER);
       
       //player area
-      _playerArea = new PlayerDetailsArea(_client, _model, tPlayerID);
+      _playerArea = new PlayerDetailsArea(_client, _model, _playerID);
       _playerArea.setLocation(new Point(0, tHeight * 3/4));
       _playerArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
       add(_playerArea, Constants.kUI_LAYER);
@@ -126,5 +194,39 @@ public class GamePanel extends JLayeredPane
       _oppArea.setLocation(new Point(tWidth  * 5/7, 0));
       _oppArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
       add(_oppArea, Constants.kUI_LAYER);
+      
+      //end turn button
+      _endTurnButton = new JButton("End Turn");
+      _endTurnButton.setLocation(new Point(tWidth * 5/7 - tWidth * 1/16, tHeight * 23/24 - Constants.kUI_PADDING));
+      _endTurnButton.setSize(new Dimension(tWidth * 1/16, tHeight * 1/24));
+      _endTurnButton.setBackground(Constants.kUI_BKGD_COLOR);
+      _endTurnButton.setForeground(Color.WHITE);
+      _endTurnButton.addActionListener(_actionListener);
+      add(_endTurnButton, Constants.kUI_LAYER);
+      
+      //quit game button
+      _quitGameButton = new JButton("Quit Game");
+      _quitGameButton.setLocation(new Point(tWidth * 2/7, tHeight * 23/24 - Constants.kUI_PADDING));
+      _quitGameButton.setSize(new Dimension(tWidth * 1/16, tHeight * 1/24));
+      _quitGameButton.setBackground(Constants.kUI_BKGD_COLOR);
+      _quitGameButton.setForeground(Color.WHITE);
+      _quitGameButton.addActionListener(_actionListener);
+      add(_quitGameButton, Constants.kUI_LAYER);
+   }
+   
+   /**
+    * Used to enable/disable this panel depending on whose turn it is
+    */
+   @Override
+   public void setEnabled(boolean aEnabled)
+   {
+      super.setEnabled(aEnabled);
+      
+      _endTurnButton.setEnabled(aEnabled);
+      
+      _playerArea.setEnabled(aEnabled);
+      _oppArea.setEnabled(aEnabled);
+      _boardPanel.setEnabled(aEnabled);
+      _handDisplayArea.setEnabled(aEnabled);
    }
 }
