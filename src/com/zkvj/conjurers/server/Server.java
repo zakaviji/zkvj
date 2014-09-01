@@ -242,23 +242,32 @@ public class Server
     */
    private void endGame(Integer aClientA, Integer aClientB)
    {
-      if(null != aClientA || null != aClientB)
+      Message tGameQuitMsg = new Message(Type.eGAME_QUIT);
+      
+      if(null != aClientA)
       {
-         ServerThread tThreadA = null, tThreadB = null;
+         ServerThread tThreadA = null;
          
          synchronized (_threadMap)
          {
             tThreadA = _threadMap.get(aClientA);
-            tThreadB = _threadMap.get(aClientB);
          }
-  
-         Message tGameQuitMsg = new Message(Type.eGAME_QUIT);
          
          if(null != tThreadA)
          {
             tThreadA._state = ClientState.eDESKTOP;
             tThreadA._opponentID = null;
             sendMessageToClient(aClientA, tGameQuitMsg);
+         }
+      }
+      
+      if(null != aClientB)
+      {
+         ServerThread tThreadB = null;
+         
+         synchronized (_threadMap)
+         {
+            tThreadB = _threadMap.get(aClientB);
          }
          
          if(null != tThreadB)
@@ -475,7 +484,7 @@ public class Server
                
                if(ClientState.eGAME == _state)
                {
-                  endGame(_clientID, _opponentID);
+                  endGame(null, _opponentID);
                }
                break;
             }

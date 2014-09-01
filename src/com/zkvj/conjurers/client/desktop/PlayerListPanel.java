@@ -13,6 +13,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
@@ -145,6 +146,7 @@ public class PlayerListPanel extends JPanel
       _table.setSelectionBackground(Color.BLACK);
       _table.setSelectionForeground(Color.WHITE);
       _table.setFillsViewportHeight(true);
+      _table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       _table.getSelectionModel().addListSelectionListener(_selectionListener);
       tConstraints.insets = new Insets(Constants.kUI_PADDING,
             Constants.kUI_PADDING, Constants.kUI_PADDING, Constants.kUI_PADDING);

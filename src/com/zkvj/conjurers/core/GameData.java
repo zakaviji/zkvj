@@ -24,6 +24,16 @@ public final class GameData implements Serializable
       
       //randomly choose who goes first
       turnPlayerID = (Math.random() < .5)? Conjurer.kPLAYER_A : Conjurer.kPLAYER_B;
+      
+      playerA.getDeck().shuffle();
+      playerB.getDeck().shuffle();
+      
+      //draw opening hands
+      for(int i=0; i<Constants.kINITIAL_HAND_SIZE; i++)
+      {
+         playerA.getHand().add(playerA.getDeck().draw());
+         playerB.getHand().add(playerB.getDeck().draw());
+      }
    }
    
    /**
