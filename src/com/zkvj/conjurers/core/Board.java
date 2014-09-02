@@ -36,7 +36,7 @@ public class Board implements Serializable
    private Map<Point, Well> _wells = new HashMap<Point, Well>();
    
    /** map of the entities on the game board */
-   private Map<Point, Entity> _entities = new HashMap<Point, Entity>();
+   private Map<Point, Minion> _minions = new HashMap<Point, Minion>();
    
    /** player positions */
    private Point _playerA;
@@ -57,7 +57,7 @@ public class Board implements Serializable
    public Board(Board aBoard)
    {
       _wells = new HashMap<Point, Well>(aBoard._wells);
-      _entities = new HashMap<Point, Entity>(aBoard._entities);
+      _minions = new HashMap<Point, Minion>(aBoard._minions);
       _playerA = new Point(aBoard._playerA);
       _playerB = new Point(aBoard._playerB);
    }
@@ -114,7 +114,7 @@ public class Board implements Serializable
          {
             if(tNumRings > (Math.abs(tX) + Math.abs(tZ) + Math.abs(tX+tZ))/2)
             {
-               setWell(tX, tZ, new Well());
+               setWell(new Point(tX, tZ), new Well());
             }
          }
       }
@@ -181,18 +181,25 @@ public class Board implements Serializable
    }
    
    /**
-    * Returns the Hex at the given coordinates
-    * @param q
-    * @param r
-    * @return Well
+    * @return set of all positions on the board
     */
-   public Well getWell(int q, int r)
+   public Set<Point> getPositions()
    {
-      return _wells.get(new Point(q,r));
+      return _wells.keySet();
    }
    
    /**
-    * Returns the set of all wells which make up the board.
+    * Returns the Well at the given coordinates, if any, else null.
+    * @param aPos
+    * @return Well
+    */
+   public Well getWell(Point aPos)
+   {
+      return _wells.get(aPos);
+   }
+   
+   /**
+    * Returns the set of all positions/wells which make up the board.
     * @return Set<Map.Entry<Point, Well>>
     */
    public Set<Map.Entry<Point, Well>> getWells()
@@ -201,14 +208,13 @@ public class Board implements Serializable
    }
    
    /**
-    * Sets the given Hex at the given coordinates
-    * @param q
-    * @param r
+    * Sets the given Well at the given position
+    * @param aPos
     * @param aWell
     */
-   public void setWell(int q, int r, Well aWell)
+   public void setWell(Point aPos, Well aWell)
    {
-      _wells.put(new Point(q,r),aWell);
+      _wells.put(aPos,aWell);
    }
    
    /**
@@ -318,8 +324,25 @@ public class Board implements Serializable
    public void updateFrom(Board aBoard)
    {
       _wells = aBoard._wells;
-      _entities = aBoard._entities;
+      _minions = aBoard._minions;
       _playerA = aBoard._playerA;
       _playerB = aBoard._playerB;
+   }
+
+   /**
+    * Returns the minion at the given position on the board, if any, else null.
+    * @param aBoard
+    * @return Minion
+    */
+   public Minion getMinion(Point aBoard)
+   {
+      Minion tReturn = null;
+      
+      if(null != aBoard)
+      {
+         tReturn = _minions.get(aBoard);
+      }
+      
+      return tReturn;
    }
 }

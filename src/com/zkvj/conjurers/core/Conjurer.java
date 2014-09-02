@@ -9,7 +9,7 @@ import com.zkvj.games.Player;
 /**
  * Class used to keep track of everything related to the player.
  */
-public class Conjurer extends Player implements Entity, Serializable
+public class Conjurer extends Player implements Serializable
 {
    private static final long serialVersionUID = 6886979304549117881L;
    
@@ -99,7 +99,6 @@ public class Conjurer extends Player implements Entity, Serializable
     * 
     * @return int
     */
-   @Override
    public int getHealth()
    {
       return _health;
@@ -109,7 +108,6 @@ public class Conjurer extends Player implements Entity, Serializable
     * Sets the health for this conjurer.
     * @param aHealth
     */
-   @Override
    public void setHealth(int aHealth)
    {
       _health = aHealth;

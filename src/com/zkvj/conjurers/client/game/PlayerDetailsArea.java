@@ -236,13 +236,11 @@ public class PlayerDetailsArea extends JPanel
    }
    
    /**
-    * Enables/disables this panel based on whether or not it is our turn
+    * Enables/disables certain features of this panel based on
+    * whether or not it is our turn
     */
-   @Override
-   public void setEnabled(boolean aEnabled)
+   public void setIsMyTurn(boolean aMyTurn)
    {
-      super.setEnabled(aEnabled);
-      
-      _health.setEnabled(aEnabled);
+      _health.setEnabled(aMyTurn);
    }
 }

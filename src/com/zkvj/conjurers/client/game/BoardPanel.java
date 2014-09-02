@@ -3,7 +3,10 @@ package com.zkvj.conjurers.client.game;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +16,7 @@ import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.GameModel;
 import com.zkvj.conjurers.core.GameModel.GameModelListener;
+import com.zkvj.conjurers.core.Minion;
 import com.zkvj.conjurers.core.Well;
 import com.zkvj.utils.BufferedImageComponent;
 
@@ -31,6 +35,37 @@ public class BoardPanel extends BufferedImageComponent
    
    /** the player represented as BLACK */
    private int _opponentID;
+   
+   /** panel only allow certain features while it is our turn */
+   private boolean _myTurn;
+   
+   private final MouseMotionListener _mouseMotionListener = new MouseMotionListener()
+   {
+      @Override
+      public void mouseMoved(MouseEvent aEvent)
+      {
+         // convert from screen coords to board coords
+         Point tBoardPos = screenToBoard(aEvent.getPoint());
+
+         if(null != tBoardPos && null != getBoard())
+         {
+            // for testing only
+//            FocusCardMgr.setFocusCard(Card.createSpellCard(-1,
+//                  tBoardPos.toString(), 0, Rarity.ePLATINUM, ""));
+
+            Minion tMinion = getBoard().getMinion(tBoardPos);
+
+            if(null != tMinion)
+            {
+               FocusCardMgr.setFocusCard(tMinion.getCard());
+            }
+         }
+      }
+      
+      @Override
+      public void mouseDragged(MouseEvent aEvent)
+      {}
+   };
    
    private final GameModelListener _modelListener = new GameModelListener()
    {
@@ -59,6 +94,8 @@ public class BoardPanel extends BufferedImageComponent
       {
          _opponentID = Conjurer.kPLAYER_B;
       }
+      
+      this.addMouseMotionListener(_mouseMotionListener);
    }
    
    /**
@@ -184,10 +221,10 @@ public class BoardPanel extends BufferedImageComponent
             aG.fill(tDiamond);
          }
       }
-      else
-      {
-         System.out.println("BoardPanel.draw(): WARNING: game data was null");
-      }
+//      else
+//      {
+//         System.out.println("BoardPanel.draw(): WARNING: game data was null");
+//      }
    }
    
    /**
@@ -208,13 +245,96 @@ public class BoardPanel extends BufferedImageComponent
    }
 
    /**
-    * Enables/disables this panel based on whether or not it is our turn
+    * Enables/disables certain features of this panel based on
+    * whether or not it is our turn
     */
-   @Override
-   public void setEnabled(boolean aEnabled)
+   public void setIsMyTurn(boolean aMyTurn)
    {
-      super.setEnabled(aEnabled);
+      _myTurn = aMyTurn;
+   }
+   
+   /**
+    * Converts QR hexagonal board position to the XY screen position which represents
+    * the center of that hex (with double precision).
+    * @param aBoard
+    * @return Point2D
+    */
+   private Point2D.Double boardToScreen(Point aBoard)
+   {
+      Point2D.Double tReturn = null;
       
-      //todo?
+      if(null != aBoard)
+      {
+         //may need to flip things upside down, if we are player B
+         int tPlayerDir = (Conjurer.kPLAYER_A == _playerID)? 1 : -1;
+         
+         int tWidth = getWidth();
+         int tHeight = getHeight();
+         
+         //magic formula for finding ideal hex radius given component size and number of rings
+         double tHexRadius = Math.min(
+            tHeight/(3*Constants.kHEX_RINGS + 2),
+            tWidth/(1 + 2*Math.sqrt(3.0)*Constants.kHEX_RINGS));
+         
+         //then make it 20% bigger
+         tHexRadius *= 1.2;
+         
+         double tHexWidth = tHexRadius * Math.sqrt(3.0);
+         double tHexHeight = tHexRadius * 2;
+         
+         double tDx = tPlayerDir * tHexWidth;
+         double tDy = tPlayerDir * .75 * tHexHeight;
+         
+         double tBoardCenterX = tWidth / 2;
+         double tBoardCenterY = tHeight / 2;
+         
+         double tHexCenterX = tBoardCenterX + aBoard.x * tDx + aBoard.y * tDx / 2;
+         double tHexCenterY = tBoardCenterY + aBoard.y * tDy;
+         
+         tReturn = new Point2D.Double(tHexCenterX, tHexCenterY);
+      }
+      
+      return tReturn;
+   }
+   
+   /**
+    * Converts an XY screen position to the QR hexagonal board position of the hex
+    * in which that screen position lies. If screen position is off the board, returns null.
+    * @param aScreen
+    * @return Point
+    */
+   public Point screenToBoard(Point aScreen)
+   {
+      Point tReturn = null;
+      
+      if(null != aScreen)
+      {
+         for(Point tBoardPos : getBoard().getPositions())
+         {
+            //convert from board coords to screen coords
+            Point2D.Double tHexCenter = boardToScreen(tBoardPos);
+            
+            if(null != tHexCenter)
+            {
+               double tDistance = Point2D.distance(aScreen.x, aScreen.y, tHexCenter.x, tHexCenter.y);
+               
+               //magic formula for finding ideal hex radius given component size and number of rings
+               double tHexRadius = Math.min(
+                     getHeight()/(3*Constants.kHEX_RINGS + 2),
+                     getWidth()/(1 + 2*Math.sqrt(3.0)*Constants.kHEX_RINGS));
+               
+               double tInnerRadius = tHexRadius * Math.sqrt(3.0)/2;
+               
+               //found it!
+               if(tDistance < tInnerRadius)
+               {
+                  tReturn = tBoardPos;
+                  break;
+               }
+            }
+         }
+      }
+            
+      return tReturn;
    }
 }

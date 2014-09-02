@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Class representing a minion entity that is on the board.
  */
-public class Minion implements Entity, Serializable
+public class Minion implements Serializable
 {
    private static final long serialVersionUID = -6964740931116576091L;
    
@@ -82,7 +82,6 @@ public class Minion implements Entity, Serializable
     * Returns the health of this minion.
     * @return int
     */
-   @Override
    public int getHealth()
    {
       return _health;
@@ -128,7 +127,6 @@ public class Minion implements Entity, Serializable
     * Sets the current health of this minion.
     * @param aHealth
     */
-   @Override
    public void setHealth(int aHealth)
    {
       _health = aHealth;

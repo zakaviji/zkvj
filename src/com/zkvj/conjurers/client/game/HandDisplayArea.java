@@ -129,17 +129,6 @@ public class HandDisplayArea extends JPanel
    }
    
    /**
-    * Enables/disables this panel based on whether or not it is our turn
-    */
-   @Override
-   public void setEnabled(boolean aEnabled)
-   {
-      super.setEnabled(aEnabled);
-      
-      //todo?
-   }
-   
-   /**
     * Model for the hand table
     */
    private class HandTableModel extends AbstractTableModel

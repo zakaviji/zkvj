@@ -30,6 +30,8 @@ public class GamePanel extends JLayeredPane
    private final GameModel _model;
    
    private int _playerID;
+   
+   private boolean _myTurn;
 
    /** display components */
    private BoardPanel _boardPanel;
@@ -52,7 +54,7 @@ public class GamePanel extends JLayeredPane
          
          if(tSource == _endTurnButton)
          {
-            setEnabled(false);
+            setIsMyTurn(false);
             _model.getGameData().endTurn();
             
             Message tEndTurnMsg = new Message(Type.eGAME_DATA);
@@ -101,10 +103,10 @@ public class GamePanel extends JLayeredPane
       @Override
       public void gameDataChanged()
       {
-         // if our turn status doesn't match our enabled status
-         if((_model.getGameData().getTurnPlayerID() == _playerID) != isEnabled())
+         // if turn has changed
+         if((_model.getGameData().getTurnPlayerID() == _playerID) != _myTurn)
          {
-            setEnabled(_model.getGameData().getTurnPlayerID() == _playerID);
+            setIsMyTurn(!_myTurn);
          }
       }
    };
@@ -126,7 +128,7 @@ public class GamePanel extends JLayeredPane
       
       initComponents();
       
-      setEnabled(_model.getGameData().getTurnPlayerID() == _playerID);
+      setIsMyTurn(_model.getGameData().getTurnPlayerID() == _playerID);
       
       _boardPanel.updateBufferedImage();
    }
@@ -214,18 +216,17 @@ public class GamePanel extends JLayeredPane
    }
    
    /**
-    * Used to enable/disable this panel depending on whose turn it is
+    * Enables/disables certain features of this panel based on
+    * whether or not it is our turn
     */
-   @Override
-   public void setEnabled(boolean aEnabled)
+   public void setIsMyTurn(boolean aMyTurn)
    {
-      super.setEnabled(aEnabled);
+      _myTurn = aMyTurn;
       
-      _endTurnButton.setEnabled(aEnabled);
+      _endTurnButton.setEnabled(aMyTurn);
       
-      _playerArea.setEnabled(aEnabled);
-      _oppArea.setEnabled(aEnabled);
-      _boardPanel.setEnabled(aEnabled);
-      _handDisplayArea.setEnabled(aEnabled);
+      _playerArea.setIsMyTurn(aMyTurn);
+      _oppArea.setIsMyTurn(aMyTurn);
+      _boardPanel.setIsMyTurn(aMyTurn);
    }
 }
