@@ -3,76 +3,51 @@ package com.zkvj.conjurers.core;
 import java.io.Serializable;
 
 /**
- * An individual hexagonal space on the Conjurers game board.
+ * An individual hexagonal space on the Conjurers game board. Immutable.
  */
-public class Well implements Serializable
+public final class Well implements Serializable
 {
    private static final long serialVersionUID = -3082920850583791539L;
    
-   private Element _elementType;
-   private Conjurer _controller;
+   public final Element elementType;
+   public final int controllerID;
    
    /**
-    * Constructor
+    * Default Constructor
     */
    public Well()
    {
-      _elementType = Element.eNEUTRAL;
-      _controller = null;
+      elementType = Element.eNEUTRAL;
+      controllerID = Conjurer.kNONE;
    }
    
    /**
     * Constructor
     * @param aElement
+    * @param aControllerID
     */
-   public Well(Element aElement)
+   public Well(Element aElement, int aControllerID)
    {
-      _elementType = aElement;
-      _controller = null;
+      elementType = aElement;
+      controllerID = aControllerID;
+   }
+   
+   /**
+    * Copy constructor.
+    * @param aWell
+    */
+   public Well(Well aWell)
+   {
+      elementType = aWell.elementType;
+      controllerID = aWell.controllerID;
    }
 
-   /**
-    * Returns the element type for this hex.
-    * @return Element
-    */
-   public Element getElementType()
-   {
-      return _elementType;
-   }
-   
-   /**
-    * Sets the element type for this hex.
-    * @param aElementType
-    */
-   public void setElementType(Element aElementType)
-   {
-      _elementType = aElementType;
-   }
-   
-   /**
-    * Returns the conjurer currently in control of this well.
-    * @return Conjurer
-    */
-   public Conjurer getController()
-   {
-      return _controller;
-   }
-   
-   /**
-    * Sets the given conjurer as being in control of this well.
-    * @param aNewController
-    */
-   public void setController(Conjurer aNewController)
-   {
-      _controller = aNewController;
-   }
-   
    /**
     * Returns a string representation for this hex.
     */
    @Override
    public String toString()
    {
-      return _elementType.toString();
+      return elementType.toString();
    }
 }

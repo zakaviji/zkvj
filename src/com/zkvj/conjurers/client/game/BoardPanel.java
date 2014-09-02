@@ -9,10 +9,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.zkvj.conjurers.core.Board;
+import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.GameModel;
-import com.zkvj.conjurers.core.Well;
 import com.zkvj.conjurers.core.GameModel.GameModelListener;
+import com.zkvj.conjurers.core.Well;
 import com.zkvj.utils.BufferedImageComponent;
 
 /**
@@ -24,6 +25,12 @@ public class BoardPanel extends BufferedImageComponent
    
    /** the game model */
    private final GameModel _model;
+   
+   /** the player represented as WHITE */
+   private int _playerID;
+   
+   /** the player represented as BLACK */
+   private int _opponentID;
    
    private final GameModelListener _modelListener = new GameModelListener()
    {
@@ -38,11 +45,20 @@ public class BoardPanel extends BufferedImageComponent
    /**
     * Constructor
     * @param aModel - the game data model
+    * @param aPlayerID - which player should be represented as white
     */
-   public BoardPanel(GameModel aModel)
+   public BoardPanel(GameModel aModel, int aPlayerID)
    {
       _model = aModel;
       _model.addListener(_modelListener);
+      
+      _playerID = aPlayerID;
+      
+      _opponentID = Conjurer.kPLAYER_A;
+      if(Conjurer.kPLAYER_A == _playerID)
+      {
+         _opponentID = Conjurer.kPLAYER_B;
+      }
    }
    
    /**
@@ -54,6 +70,9 @@ public class BoardPanel extends BufferedImageComponent
    {
       if(null != getBoard())
       {
+         //may need to draw the board upside down, if we are player B
+         int tPlayerDir = (Conjurer.kPLAYER_A == _playerID)? 1 : -1;
+         
          //System.out.println(_data.getBoard().toString());
          
          int tWidth = getWidth();
@@ -70,8 +89,8 @@ public class BoardPanel extends BufferedImageComponent
          double tHexWidth = tHexRadius * Math.sqrt(3.0);
          double tHexHeight = tHexRadius * 2;
          
-         double tDx = tHexWidth;
-         double tDy = .75 * tHexHeight;
+         double tDx = tPlayerDir * tHexWidth;
+         double tDy = tPlayerDir * .75 * tHexHeight;
          
          double tBoardCenterX = tWidth / 2;
          double tBoardCenterY = tHeight / 2;
@@ -112,22 +131,24 @@ public class BoardPanel extends BufferedImageComponent
             aG.fill(tOuterHex);
             
             //color denotes the element of the hex
-            aG.setColor(tEntry.getValue().getElementType().getColor());
+            aG.setColor(tEntry.getValue().elementType.getColor());
             aG.fill(tHex);
             
-            //shading denotes which player has control of this space
-//            aG.setColor(Constants.kPLAYER_ONE_SHADE);
-//            if(0 == (int)Math.floor(2*Math.random()))
-//            {
-//               aG.setColor(Constants.kPLAYER_TWO_SHADE);
-//            }
-//            aG.fill(tHex);
+            //shading denotes which player has control of this space, if any
+            if(tEntry.getValue().controllerID != Conjurer.kNONE)
+            {
+               Color tShade = (tEntry.getValue().controllerID == _playerID)?
+                     Constants.kPLAYER_SHADE : Constants.kOPPONENT_SHADE;
+               
+               aG.setColor(tShade);
+               aG.fill(tHex);
+            }
          }
          
          //Draw the conjurer spaces
          List<Point> tConjurerSpaces = new ArrayList<Point>();
-         tConjurerSpaces.add(getBoard().getPlayerPosition());
-         tConjurerSpaces.add(getBoard().getOpponentPosition());
+         tConjurerSpaces.add(getBoard().getPlayerPosition(_playerID));
+         tConjurerSpaces.add(getBoard().getPlayerPosition(_opponentID));
          
          for(int tJndex = 0; tJndex < tConjurerSpaces.size(); tJndex++)
          {
@@ -148,17 +169,17 @@ public class BoardPanel extends BufferedImageComponent
                   tAngle = (Math.PI / 6) + tIndex * (Math.PI / 3);
                }
                
-               double tScreenX = tHexCenterX + (tHexRadius-4) * Math.cos(tAngle);
-               double tScreenY = tHexCenterY + (tHexRadius-4) * Math.sin(tAngle);
+               double tScreenX = tHexCenterX + (tHexRadius-4) * Math.cos(tAngle) * tPlayerDir;
+               double tScreenY = tHexCenterY + (tHexRadius-4) * Math.sin(tAngle) * tPlayerDir;
                
                tDiamond.lineTo(tScreenX, tScreenY);
             }
             tDiamond.closePath();
             
-            aG.setColor(Constants.kPLAYER_ONE_COLOR);
+            aG.setColor(Constants.kPLAYER_COLOR);
             if(tJndex > 0)
             {
-               aG.setColor(Constants.kPLAYER_TWO_COLOR);
+               aG.setColor(Constants.kOPPONENT_COLOR);
             }
             aG.fill(tDiamond);
          }

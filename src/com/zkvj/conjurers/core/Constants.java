@@ -29,10 +29,10 @@ public final class Constants
    public static final Color kEARTH_COLOR = new Color(34,139,34);
    public static final Color kNEUTRAL_COLOR = Color.GRAY;
    public static final Color kBACKGROUND_COLOR = Color.GRAY;
-   public static final Color kPLAYER_ONE_COLOR = Color.WHITE;
-   public static final Color kPLAYER_TWO_COLOR = Color.BLACK;
-   public static final Color kPLAYER_ONE_SHADE = new Color(255,255,255,50);
-   public static final Color kPLAYER_TWO_SHADE = new Color(0,0,0,50);
+   public static final Color kPLAYER_COLOR = Color.WHITE;
+   public static final Color kOPPONENT_COLOR = Color.BLACK;
+   public static final Color kPLAYER_SHADE = new Color(255,255,255,50);
+   public static final Color kOPPONENT_SHADE = new Color(0,0,0,50);
    public static final Color kTRANSPARENT_COLOR = new Color(0,0,0,0);
    public static final Color kUI_BKGD_COLOR = Color.DARK_GRAY;//new Color(0,0,0,128);
    
@@ -64,8 +64,8 @@ public final class Constants
    public static final int kMAX_HAND_SIZE = 7;
    
    /** starting conjurer positions */
-   public static final Point kDEFAULT_PLAYER_POS = new Point(-2,4);
-   public static final Point kDEFAULT_OPPONENT_POS = new Point(2,-4);
+   public static final Point kDEFAULT_PLAYER_A_POS = new Point(-2,4);
+   public static final Point kDEFAULT_PLAYER_B_POS = new Point(2,-4);
    
    /** server port number */
    public static final String kHOST_NAME = "localhost";

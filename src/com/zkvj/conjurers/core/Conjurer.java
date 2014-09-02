@@ -14,8 +14,9 @@ public class Conjurer extends Player implements Entity, Serializable
    private static final long serialVersionUID = 6886979304549117881L;
    
    /** Constants used to identify which player is which */
-   public static final int kPLAYER_A = 0;
-   public static final int kPLAYER_B = 1;
+   public static final int kNONE = 0;
+   public static final int kPLAYER_A = 1;
+   public static final int kPLAYER_B = 2;
    
    private final int _playerID;
    private Deck _deck;

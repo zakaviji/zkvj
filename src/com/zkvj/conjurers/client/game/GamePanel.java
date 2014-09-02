@@ -158,7 +158,7 @@ public class GamePanel extends JLayeredPane
       add(tBackground, Constants.kBACKGROUND_LAYER);
       
       //board component is a square, with full height of the game panel
-      _boardPanel = new BoardPanel(_model);
+      _boardPanel = new BoardPanel(_model, _playerID);
       _boardPanel.setLocation(new Point(tWidth/2 - tHeight/2, 0));
       _boardPanel.setSize(new Dimension(tHeight, tHeight));
       _boardPanel.setBufferedImageSize(_boardPanel.getSize());

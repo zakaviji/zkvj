@@ -2,7 +2,9 @@ package com.zkvj.conjurers.core;
 
 import java.awt.Point;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,9 +15,17 @@ import java.util.Set;
 public class Board implements Serializable
 {
    private static final long serialVersionUID = 2310506492116570683L;
+   
+   /** Constants which define directions relative to a hex */
+   public static final int kRIGHT = 0;
+   public static final int kUP_RIGHT = 1;
+   public static final int kUP_LEFT = 2;
+   public static final int kLEFT = 3;
+   public static final int kDOWN_LEFT = 4;
+   public static final int kDOWN_RIGHT = 5;
 
    /** array of pre-calculated offsets for neighbor hexes */
-   private static final Point[] kNeighbors = {new Point( 1, 0),
+   private static final Point[] kNeighborDirections = {new Point( 1, 0),
                                               new Point( 1,-1),
                                               new Point( 0,-1),
                                               new Point(-1, 0),
@@ -29,8 +39,8 @@ public class Board implements Serializable
    private Map<Point, Entity> _entities = new HashMap<Point, Entity>();
    
    /** player positions */
-   private Point _playerPosition;
-   private Point _opponentPosition;
+   private Point _playerA;
+   private Point _playerB;
    
    /**
     * Constructor
@@ -48,8 +58,8 @@ public class Board implements Serializable
    {
       _wells = new HashMap<Point, Well>(aBoard._wells);
       _entities = new HashMap<Point, Entity>(aBoard._entities);
-      _playerPosition = new Point(aBoard._playerPosition);
-      _opponentPosition = new Point(aBoard._opponentPosition);
+      _playerA = new Point(aBoard._playerA);
+      _playerB = new Point(aBoard._playerB);
    }
 
    /**
@@ -59,6 +69,26 @@ public class Board implements Serializable
    {
       initializeWells();
       initializePlayerPositions();
+      
+      List<Point> tPlayerNeighbors = getNeighbors(_playerA);
+      for(Point tPos : tPlayerNeighbors)
+      {
+         Well tWell = _wells.get(tPos);
+         if(null != tWell)
+         {
+            _wells.put(tPos, new Well(tWell.elementType, Conjurer.kPLAYER_A));
+         }
+      }
+      
+      List<Point> tOpponentNeighbors = getNeighbors(_playerB);
+      for(Point tPos : tOpponentNeighbors)
+      {
+         Well tWell = _wells.get(tPos);
+         if(null != tWell)
+         {
+            _wells.put(tPos, new Well(tWell.elementType, Conjurer.kPLAYER_B));
+         }
+      }
    }
    
    /**
@@ -66,8 +96,8 @@ public class Board implements Serializable
     */
    public void initializePlayerPositions()
    {
-      _playerPosition = Constants.kDEFAULT_PLAYER_POS;
-      _opponentPosition = Constants.kDEFAULT_OPPONENT_POS;
+      _playerA = Constants.kDEFAULT_PLAYER_A_POS;
+      _playerB = Constants.kDEFAULT_PLAYER_B_POS;
    }
    
    /**
@@ -104,8 +134,8 @@ public class Board implements Serializable
     */
    public void randomizePlayerPositions()
    {
-      _playerPosition = new Point(-1 * (int)Math.ceil(3*Math.random()),4);
-      _opponentPosition = new Point((int)Math.ceil(3*Math.random()),-4);
+      _playerA = new Point(-1 * (int)Math.ceil(3*Math.random()),4);
+      _playerB = new Point((int)Math.ceil(3*Math.random()),-4);
    }
 
    /**
@@ -114,9 +144,9 @@ public class Board implements Serializable
    public void randomizeWells()
    {
       //totally random
-      for(Map.Entry<Point, Well>  tEntry: _wells.entrySet())
+      for(Point tPos: _wells.keySet())
       {
-         tEntry.getValue().setElementType(Element.getRandom());
+         _wells.put(tPos, new Well(Element.getRandom(), Conjurer.kNONE));
       }
       
       //put nine wells of each element on the board, leaving the middle space neutral
@@ -182,21 +212,38 @@ public class Board implements Serializable
    }
    
    /**
-    * Returns the hex which neighbors the hex specified by (q,r) in the
-    * direction specified by dir
-    * @param q
-    * @param r
-    * @param dir
-    * @return Hex
+    * Returns the position which is a neighbor to the given position in the
+    * given direction (i.e. kLEFT, kUP_LEFT, etc...).
+    * Returns null if given direction is invalid.
+    * @param aPosition
+    * @param aDirection
+    * @return Point
     */
-   public Well getNeighbor(int q, int r, int dir)
+   public Point getNeighbor(Point aPosition, int aDirection)
    {
-      Well tReturn = null;
+      Point tReturn = null;
       
-      if(dir >= 0 && dir < kNeighbors.length)
+      if(aDirection >= 0 && aDirection < kNeighborDirections.length)
       {
-         tReturn = _wells.get(new Point(q + kNeighbors[dir].x,
-                                        r + kNeighbors[dir].y));
+         tReturn = new Point(aPosition.x + kNeighborDirections[aDirection].x,
+                             aPosition.y + kNeighborDirections[aDirection].y);
+      }
+      
+      return tReturn;
+   }
+   
+   /**
+    * Returns a list of the positions which are neighbors to the given position.
+    * @param aPosition
+    * @return List<Point>
+    */
+   public List<Point> getNeighbors(Point aPosition)
+   {
+      List<Point> tReturn = new ArrayList<Point>();
+      
+      for(Point tDirection : kNeighborDirections)
+      {
+         tReturn.add(new Point(aPosition.x + tDirection.x, aPosition.y + tDirection.y));
       }
       
       return tReturn;
@@ -212,12 +259,12 @@ public class Board implements Serializable
       StringBuilder tReturn = new StringBuilder();
       
       tReturn.append("Player is at (").
-              append(_playerPosition.x).append(",").
-              append(_playerPosition.y).append(")\n");
+              append(_playerA.x).append(",").
+              append(_playerA.y).append(")\n");
       
       tReturn.append("Opponent is at (").
-              append(_opponentPosition.x).append(",").
-              append(_opponentPosition.y).append(")\n");
+              append(_playerB.x).append(",").
+              append(_playerB.y).append(")\n");
       
       for(Map.Entry<Point, Well> tEntry : _wells.entrySet())
       {
@@ -230,35 +277,38 @@ public class Board implements Serializable
    }
 
    /**
-    * @return the playerPosition
+    * @return the position of the player with the given ID
     */
-   public Point getPlayerPosition()
+   public Point getPlayerPosition(int aPlayerID)
    {
-      return _playerPosition;
+      Point tReturn = null;
+      
+      if(Conjurer.kPLAYER_A == aPlayerID)
+      {
+         tReturn = _playerA;
+      }
+      else if(Conjurer.kPLAYER_B == aPlayerID)
+      {
+         tReturn = _playerB;
+      }
+      
+      return tReturn;
    }
 
    /**
-    * @param aPlayerPosition the playerPosition to set
+    * @param aPlayerID - ID of the player
+    * @param aPlayerPosition - position of the player
     */
-   public void setPlayerPosition(Point aPlayerPosition)
+   public void setPlayerPosition(int aPlayerID, Point aPlayerPosition)
    {
-      _playerPosition = aPlayerPosition;
-   }
-
-   /**
-    * @return the opponentPosition
-    */
-   public Point getOpponentPosition()
-   {
-      return _opponentPosition;
-   }
-
-   /**
-    * @param aOpponentPosition the opponentPosition to set
-    */
-   public void setOpponentPosition(Point aOpponentPosition)
-   {
-      _opponentPosition = aOpponentPosition;
+      if(Conjurer.kPLAYER_A == aPlayerID)
+      {
+         _playerA = aPlayerPosition;
+      }
+      else if(Conjurer.kPLAYER_B == aPlayerID)
+      {
+         _playerB = aPlayerPosition;
+      }
    }
 
    /**
@@ -269,7 +319,7 @@ public class Board implements Serializable
    {
       _wells = aBoard._wells;
       _entities = aBoard._entities;
-      _playerPosition = aBoard._playerPosition;
-      _opponentPosition = aBoard._opponentPosition;
+      _playerA = aBoard._playerA;
+      _playerB = aBoard._playerB;
    }
 }
