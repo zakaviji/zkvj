@@ -49,12 +49,8 @@ public class HandDisplayArea extends JPanel
          if(tSelectedRow >= 0 &&
             tSelectedRow < _tableModel.getRowCount())
          {
-            //todo: update focus card based on selection
-            
-            
+            FocusCardMgr.setFocusCard(_tableModel.getCardAt(tSelectedRow));            
          }
-         
-         //todo: play selected card?
       }
    };
    
@@ -189,7 +185,7 @@ public class HandDisplayArea extends JPanel
          }
          else
          {
-            System.err.println("PlayerListTableModel:getValueAt: given row is out of bounds");
+            System.err.println("HandTableModel:getValueAt: given row is out of bounds");
          }
          
          return tReturn;
@@ -210,6 +206,27 @@ public class HandDisplayArea extends JPanel
          {
             System.err.println("HandTableModel: setHand: given list was null");
          }
+      }
+      
+      /**
+       * Returns the card at the given row, or null if row is out of bounds.
+       * @param aRow
+       * @return Card (or null)
+       */
+      public Card getCardAt(int aRow)
+      {
+         Card tReturn = null;
+         
+         if(aRow >= 0 && aRow < _hand.size())
+         {
+            tReturn = _hand.get(aRow);
+         }
+         else
+         {
+            System.err.println("HandTableModel:getCardAt: given row is out of bounds");
+         }
+         
+         return tReturn;
       }
    }
 }

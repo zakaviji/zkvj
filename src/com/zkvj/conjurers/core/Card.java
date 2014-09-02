@@ -34,15 +34,7 @@ public final class Card implements Serializable
     */
    private Card(int aID, String aName, int aEneryCost, Rarity aRarity, String aText)
    {
-      this._id = aID;
-      this._name = aName;
-      this._energyCost = aEneryCost;
-      this._rarity = aRarity;
-      this._text = aText;
-      this._isMinion = false;
-      this._element = Element.eNEUTRAL;
-      this._power = 0;
-      this._health = 0;
+      this(aID, aName, aEneryCost, aRarity, aText, Element.eNEUTRAL, 0, 0);
    }
    
    /**
@@ -70,10 +62,12 @@ public final class Card implements Serializable
       this._energyCost = aEneryCost;
       this._rarity = aRarity;
       this._text = aText;
-      this._isMinion = true;
       this._element = aElement;
       this._power = aPower;
       this._health = aHealth;
+      
+      //if power or health > 0, this is minion card
+      this._isMinion = (aPower > 0 || aHealth > 0);
    }
    
    /**

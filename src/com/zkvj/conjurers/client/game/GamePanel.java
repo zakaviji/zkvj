@@ -166,9 +166,8 @@ public class GamePanel extends JLayeredPane
       
       //card details area
       _cardDetailsArea = new CardDetailsArea();
-      _cardDetailsArea.setLocation(new Point(tWidth - (tHeight * 1/3), tHeight * 1/4));
-      _cardDetailsArea.setSize(new Dimension(tHeight * 1/3, tHeight * 1/2));
-      _cardDetailsArea.setBufferedImageSize(_cardDetailsArea.getSize());
+      _cardDetailsArea.setLocation(new Point(tWidth * 4/5, tHeight * 1/4));
+      _cardDetailsArea.setSize(new Dimension(tWidth * 1/5, tHeight * 1/2));
       add(_cardDetailsArea, Constants.kUI_LAYER);
       
       //chat/history area
