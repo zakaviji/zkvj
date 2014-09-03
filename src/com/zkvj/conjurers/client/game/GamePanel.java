@@ -57,6 +57,9 @@ public class GamePanel extends JLayeredPane
             setIsMyTurn(false);
             _model.getGameData().endTurn();
             
+            //opponent's turn, so their energy changed
+            _oppArea.updateFromModel();
+            
             Message tEndTurnMsg = new Message(Type.eGAME_DATA);
             tEndTurnMsg.gameData = new GameData(_model.getGameData());
             
@@ -160,7 +163,7 @@ public class GamePanel extends JLayeredPane
       add(tBackground, Constants.kBACKGROUND_LAYER);
       
       //board component is a square, with full height of the game panel
-      _boardPanel = new BoardPanel(_model, _playerID);
+      _boardPanel = new BoardPanel(_client, _model, _playerID);
       _boardPanel.setLocation(new Point(tWidth/2 - tHeight/2, 0));
       _boardPanel.setSize(new Dimension(tHeight, tHeight));
       _boardPanel.setBufferedImageSize(_boardPanel.getSize());
@@ -179,7 +182,7 @@ public class GamePanel extends JLayeredPane
       add(_chatHistoryPanel, Constants.kUI_LAYER);
       
       //hand display area
-      _handDisplayArea = new HandDisplayArea(_client, _model, _playerID);
+      _handDisplayArea = new HandDisplayArea(_model, _playerID);
       _handDisplayArea.setLocation(new Point(tWidth  * 5/7, tHeight * 3/4));
       _handDisplayArea.setSize(new Dimension(tWidth * 2/7, tHeight * 1/4));
       add(_handDisplayArea, Constants.kUI_LAYER);

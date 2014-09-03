@@ -3,19 +3,25 @@ package com.zkvj.conjurers.client.game;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.zkvj.conjurers.client.Client;
 import com.zkvj.conjurers.core.Board;
+import com.zkvj.conjurers.core.Card;
 import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
+import com.zkvj.conjurers.core.GameData;
 import com.zkvj.conjurers.core.GameModel;
 import com.zkvj.conjurers.core.GameModel.GameModelListener;
+import com.zkvj.conjurers.core.Message;
+import com.zkvj.conjurers.core.Message.Type;
 import com.zkvj.conjurers.core.Minion;
 import com.zkvj.conjurers.core.Well;
 import com.zkvj.utils.BufferedImageComponent;
@@ -27,7 +33,7 @@ public class BoardPanel extends BufferedImageComponent
 {
    private static final long serialVersionUID = -1194634150725552094L;
    
-   /** the game model */
+   private final Client _client;
    private final GameModel _model;
    
    /** the player represented as WHITE */
@@ -39,51 +45,207 @@ public class BoardPanel extends BufferedImageComponent
    /** panel only allow certain features while it is our turn */
    private boolean _myTurn;
    
-   private final MouseMotionListener _mouseMotionListener = new MouseMotionListener()
+   /** used for moving minions by dragging */
+   private boolean _dragging;
+   private Point _dragOrigin;
+   
+   /**
+    * Perform actions based on mouse events:
+    * - With a card selected, click on an empty space on the board to play that card
+    * - Right click to toggle control of a space.
+    * - Click and drag a minion to move it (drag off the board to get rid of the minion).
+    * - Mouse wheel to change health of a minion.
+    */
+   private final MouseAdapter _mouseAdaptor = new MouseAdapter()
    {
       @Override
-      public void mouseMoved(MouseEvent aEvent)
+      public void mouseClicked(MouseEvent aEvent)
       {
-         // convert from screen coords to board coords
-         Point tBoardPos = screenToBoard(aEvent.getPoint());
-
-         if(null != tBoardPos && null != getBoard())
+         if(_myTurn)
          {
-            // for testing only
-//            FocusCardMgr.setFocusCard(Card.createSpellCard(-1,
-//                  tBoardPos.toString(), 0, Rarity.ePLATINUM, ""));
-
-            Minion tMinion = getBoard().getMinion(tBoardPos);
-
-            if(null != tMinion)
+            Point tBoardPos = screenToBoard(aEvent.getPoint());
+            
+            if(null != tBoardPos)
             {
-               FocusCardMgr.setFocusCard(tMinion.getCard());
+               boolean tChanged = false;
+               Card tCard = SelectionMgr.getSelectedCard();
+               
+               //left mouse button with card selected
+               if(MouseEvent.BUTTON1 == aEvent.getButton() &&
+                  null != tCard &&
+                  _model.getGameData().getPlayer(_playerID).getEnergy() >= tCard.getEnergyCost())
+               {
+                  Minion tMinion = getBoard().getMinion(tBoardPos);
+                  
+                  //if there is not a minion here, play it
+                  if(null == tMinion)
+                  {
+                     tMinion = _model.getGameData().playCardFromHand(_playerID, tCard);
+                     tChanged = true;
+                     
+                     //if we got a minion, put it on the board
+                     if(null != tMinion)
+                     {
+                        getBoard().setMinion(tBoardPos, tMinion);
+                     }
+                  }
+                  
+                  if(tChanged)
+                  {
+                     SelectionMgr.playSelectedCard();
+                  }
+               }
+               //right mouse button: cycle through controller IDs
+               else if(MouseEvent.BUTTON3 == aEvent.getButton())
+               {
+                  Well tWell = getBoard().getWell(tBoardPos);
+                  
+                  int tController = (tWell.controllerID == Conjurer.kNONE)?
+                        _playerID : Conjurer.kNONE;
+                  
+                  getBoard().setWell(tBoardPos, new Well(tWell.elementType, tController));
+                  
+                  tChanged = true;
+               }
+               
+               if(tChanged)
+               {
+                  updateFromModel();
+                  
+                  Message tGameDataMsg = new Message(Type.eGAME_DATA);
+                  tGameDataMsg.gameData = new GameData(_model.getGameData());
+                  _client.sendMessage(tGameDataMsg);
+               }
             }
          }
       }
       
       @Override
-      public void mouseDragged(MouseEvent aEvent)
-      {}
+      public void mousePressed(MouseEvent aEvent)
+      {
+         if(_myTurn &&
+            !_dragging &&
+            MouseEvent.BUTTON1 == aEvent.getButton())
+         {
+            Point tBoardPos = screenToBoard(aEvent.getPoint());
+            Minion tMinion = getBoard().getMinion(tBoardPos);
+            
+            //if mouse pressed on a minion
+            if(null != tBoardPos &&
+               null != tMinion)
+            {
+               _dragging = true;
+               _dragOrigin = tBoardPos;
+            }
+         }
+      }
+      
+      @Override
+      public void mouseReleased(MouseEvent aEvent)
+      {
+         if(_myTurn &&
+            _dragging &&
+            MouseEvent.BUTTON1 == aEvent.getButton())
+         {
+            _dragging = false;
+            boolean tChanged = false;
+            
+            Point tBoardPos = screenToBoard(aEvent.getPoint());
+            Minion tMinion = getBoard().getMinion(tBoardPos);
+            
+            //mouse released on a different, valid space with no minion
+            if(null != tBoardPos &&
+               null == tMinion &&
+               tBoardPos != _dragOrigin)
+            {
+               tMinion = getBoard().getMinion(_dragOrigin);
+               
+               getBoard().setMinion(_dragOrigin, null);
+               getBoard().setMinion(tBoardPos, tMinion);
+               tChanged = true;
+            }
+            //mouse released off the board, remove minion
+            else if(null == tBoardPos)
+            {
+               getBoard().setMinion(_dragOrigin, null);
+               tChanged = true;
+            }
+            
+            if(tChanged)
+            {
+               updateFromModel();
+               
+               Message tGameDataMsg = new Message(Type.eGAME_DATA);
+               tGameDataMsg.gameData = new GameData(_model.getGameData());
+               _client.sendMessage(tGameDataMsg);
+            }
+         }
+      }
+      
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent aEvent)
+      {
+         if(_myTurn)
+         {
+            Point tBoardPos = screenToBoard(aEvent.getPoint());
+            Minion tMinion = getBoard().getMinion(tBoardPos);
+            
+            //if mouse wheeled on a minion
+            if(null != tBoardPos &&
+               null != tMinion)
+            {
+               int tNewHealth = Math.max(0, tMinion.getHealth() - aEvent.getWheelRotation());
+               
+               if(tNewHealth != tMinion.getHealth())
+               {
+                  //create a copy so object stream will see a change
+                  tMinion = new Minion(tMinion);
+                  tMinion.setHealth(tNewHealth);
+                  getBoard().setMinion(tBoardPos, tMinion);
+                  
+                  updateFromModel();
+                  
+                  Message tGameDataMsg = new Message(Type.eGAME_DATA);
+                  tGameDataMsg.gameData = new GameData(_model.getGameData());
+                  _client.sendMessage(tGameDataMsg);
+               }
+            }
+         }
+      }
+
+      @Override
+      public void mouseMoved(MouseEvent aEvent)
+      {
+         Point tBoardPos = screenToBoard(aEvent.getPoint());
+         Minion tMinion = getBoard().getMinion(tBoardPos);
+
+         if(null != tBoardPos &&
+            null != tMinion)
+         {
+            SelectionMgr.setFocusCard(tMinion.getCard());
+         }
+      }
    };
    
+   /** repaint upon game data changes */
    private final GameModelListener _modelListener = new GameModelListener()
    {
       @Override
       public void gameDataChanged()
       {
-         updateBufferedImage();
-         repaint();
+         updateFromModel();
       }
    };
    
    /**
     * Constructor
+    * @param aClient - the client
     * @param aModel - the game data model
     * @param aPlayerID - which player should be represented as white
     */
-   public BoardPanel(GameModel aModel, int aPlayerID)
+   public BoardPanel(Client aClient, GameModel aModel, int aPlayerID)
    {
+      _client = aClient;
       _model = aModel;
       _model.addListener(_modelListener);
       
@@ -95,7 +257,9 @@ public class BoardPanel extends BufferedImageComponent
          _opponentID = Conjurer.kPLAYER_B;
       }
       
-      this.addMouseMotionListener(_mouseMotionListener);
+      this.addMouseListener(_mouseAdaptor);
+      this.addMouseMotionListener(_mouseAdaptor);
+      this.addMouseWheelListener(_mouseAdaptor);
    }
    
    /**
@@ -135,11 +299,14 @@ public class BoardPanel extends BufferedImageComponent
          //Draw the hexagonal spaces
          for(Map.Entry<Point, Well> tEntry : getBoard().getWells())
          {
+            Point tBoardPos = tEntry.getKey();
+            
             Path2D.Double tOuterHex = new Path2D.Double();
             Path2D.Double tHex = new Path2D.Double();
+            Path2D.Double tInnerHex = new Path2D.Double();
             
-            double tHexCenterX = tBoardCenterX + tEntry.getKey().x * tDx + tEntry.getKey().y * tDx / 2;
-            double tHexCenterY = tBoardCenterY + tEntry.getKey().y * tDy;
+            double tHexCenterX = tBoardCenterX + tBoardPos.x * tDx + tBoardPos.y * tDx / 2;
+            double tHexCenterY = tBoardCenterY + tBoardPos.y * tDy;
             
             for(int tIndex = 0; tIndex < 7; tIndex++)
             {
@@ -150,16 +317,21 @@ public class BoardPanel extends BufferedImageComponent
                 
                 double tScreenX = tHexCenterX + (tHexRadius-1) * Math.cos(tAngle);
                 double tScreenY = tHexCenterY + (tHexRadius-1) * Math.sin(tAngle);
+                
+                double tInnerScreenX = tHexCenterX + (tHexRadius-10) * Math.cos(tAngle);
+                double tInnerScreenY = tHexCenterY + (tHexRadius-10) * Math.sin(tAngle);
                
                if(tIndex == 0)
                {
                   tOuterHex.moveTo(tScreenXOuter, tScreenYOuter);
                   tHex.moveTo(tScreenX, tScreenY);
+                  tInnerHex.moveTo(tInnerScreenX, tInnerScreenY);
                }
                else
                {
                   tOuterHex.lineTo(tScreenXOuter, tScreenYOuter);
                   tHex.lineTo(tScreenX, tScreenY);
+                  tInnerHex.lineTo(tInnerScreenX, tInnerScreenY);
                }
             }
             
@@ -179,6 +351,36 @@ public class BoardPanel extends BufferedImageComponent
                
                aG.setColor(tShade);
                aG.fill(tHex);
+            }
+            
+            //if there is a minion here, draw inner hex and text
+            Minion tMinion = getBoard().getMinion(tBoardPos);
+            if(null != tMinion)
+            {
+               Color tMinionBkgd = (tMinion.getController() == _playerID)?
+                     Constants.kPLAYER_COLOR : Constants.kOPPONENT_COLOR;
+               aG.setColor(tMinionBkgd);
+               aG.fill(tInnerHex);
+               
+               Color tTextColor = (tMinion.getController() == _playerID)?
+                     Constants.kOPPONENT_COLOR : Constants.kPLAYER_COLOR;
+               aG.setColor(tTextColor);
+               
+               int tCenterX = Math.round((float)tHexCenterX);
+               int tCenterY = Math.round((float)tHexCenterY);
+               
+               String tName = tMinion.getName();
+               String tPH = tMinion.getPower() + " / " + tMinion.getHealth();
+               int tFontSize = aG.getFont().getSize();
+               
+               int tNameX = tCenterX - tName.length() * tFontSize/4;
+               int tNameY = tCenterY;
+               
+               int tPHX = tCenterX - tPH.length() * tFontSize/4;
+               int tPHY = tCenterY + tFontSize;
+               
+               aG.drawString(tName, tNameX, tNameY);
+               aG.drawString(tPH, tPHX, tPHY);
             }
          }
          
@@ -336,5 +538,14 @@ public class BoardPanel extends BufferedImageComponent
       }
             
       return tReturn;
+   }
+   
+   /**
+    * Updates this panel with latest data from model.
+    */
+   private void updateFromModel()
+   {
+      updateBufferedImage();
+      repaint();
    }
 }

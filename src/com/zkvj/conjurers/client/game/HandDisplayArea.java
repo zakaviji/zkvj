@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +17,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
-import com.zkvj.conjurers.client.Client;
+import com.zkvj.conjurers.client.game.SelectionMgr.PlayedCardListener;
 import com.zkvj.conjurers.core.Card;
 import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
@@ -29,7 +31,6 @@ public class HandDisplayArea extends JPanel
 {
    private static final long serialVersionUID = 8520685473956498948L;
 
-   private final Client _client;
    private final GameModel _model;
    
    /** keep track of which player is us */
@@ -38,7 +39,7 @@ public class HandDisplayArea extends JPanel
    private HandTableModel _tableModel;
    private JTable _table;
    
-   /** listener for when a user is selected from the table */
+   /** set selected card based on table selection */
    private ListSelectionListener _selectionListener = new ListSelectionListener()
    {
       @Override
@@ -49,17 +50,50 @@ public class HandDisplayArea extends JPanel
          if(tSelectedRow >= 0 &&
             tSelectedRow < _tableModel.getRowCount())
          {
-            FocusCardMgr.setFocusCard(_tableModel.getCardAt(tSelectedRow));            
+            SelectionMgr.setSelectedCard(_tableModel.getCardAt(tSelectedRow));
          }
       }
    };
    
+   /** set focus card when hovering mouse over table */
+   private final MouseMotionAdapter _mouseMotionAdapter = new MouseMotionAdapter()  
+   {  
+      public void mouseMoved(MouseEvent aEvent)  
+      {  
+         int tMouseOverRow = _table.rowAtPoint(aEvent.getPoint());
+         
+         if (tMouseOverRow >= 0 &&
+             tMouseOverRow < _tableModel.getRowCount())  
+         {
+            SelectionMgr.setFocusCard(_tableModel.getCardAt(tMouseOverRow));
+         }
+      }  
+   };
+   
+   /** listen for when selected cards are played */
+   private final PlayedCardListener _playedCardListener = new PlayedCardListener()
+   {
+      @Override
+      public void selectedCardPlayed()
+      {
+         updateFromModel();
+      }
+   };
+   
+   /** listen for game data changes */
    private final GameModelListener _modelListener = new GameModelListener()
    {
       @Override
       public void gameDataChanged()
       {
-         _tableModel.setHand(getPlayer().getHand());
+         //if hand has changed
+         //(assuming hand can only change by adding/removing a single card at a time)
+         if(getPlayer().getHand().size() != _tableModel.getRowCount())
+         {
+            SelectionMgr.setSelectedCard(null);
+            
+            updateFromModel();
+         }
       }
    };
    
@@ -68,13 +102,14 @@ public class HandDisplayArea extends JPanel
     * @param aClient
     * @param aModel
     */
-   public HandDisplayArea(Client aClient, GameModel aModel, int aPlayerID)
+   public HandDisplayArea(GameModel aModel, int aPlayerID)
    {
-      _client = aClient;
       _model = aModel;
       _playerID = aPlayerID;
       
       _model.addListener(_modelListener);
+      
+      SelectionMgr.addPlayedCardListener(_playedCardListener);
       
       setBackground(Constants.kBACKGROUND_COLOR);
       initComponents();
@@ -114,6 +149,7 @@ public class HandDisplayArea extends JPanel
       _table.setFillsViewportHeight(true);
       _table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
       _table.getSelectionModel().addListSelectionListener(_selectionListener);
+      _table.addMouseMotionListener(_mouseMotionAdapter);
       tMainPanel.add(new JScrollPane(_table), tConstraints);
       
       this.add(tMainPanel, tMainPanelConstraints);
@@ -126,6 +162,15 @@ public class HandDisplayArea extends JPanel
    private Conjurer getPlayer()
    {
       return _model.getGameData().getPlayer(_playerID);
+   }
+   
+   /**
+    * Updates this panel based on current data from model.
+    */
+   private void updateFromModel()
+   {
+      _table.clearSelection();
+      _tableModel.setHand(getPlayer().getHand());
    }
    
    /**

@@ -54,6 +54,14 @@ public class Conjurer extends Player implements Serializable
       _health = aConjurer._health;
       _energy = aConjurer._energy;
    }
+    
+   /**
+    * Removes the top card from the deck and adds it to the hand.
+    */
+   public final void drawCard()
+   {
+      _hand.add(_deck.draw());
+   }
 
    /**
     * Returns the deck object for this conjurer.

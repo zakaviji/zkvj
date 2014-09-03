@@ -9,7 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
-import com.zkvj.conjurers.client.game.FocusCardMgr.FocusCardListener;
+import com.zkvj.conjurers.client.game.SelectionMgr.FocusCardListener;
 import com.zkvj.conjurers.core.Card;
 import com.zkvj.conjurers.core.Constants;
 
@@ -37,7 +37,7 @@ public class CardDetailsArea extends JPanel
       @Override
       public void focusCardChanged()
       {
-         Card tFocusCard = FocusCardMgr.getFocusCard();
+         Card tFocusCard = SelectionMgr.getFocusCard();
          
          _name.setText(tFocusCard.getName());
          _energyCost.setText("Energy Cost: "+tFocusCard.getEnergyCost());
@@ -59,7 +59,7 @@ public class CardDetailsArea extends JPanel
     */
    public CardDetailsArea()
    {
-      FocusCardMgr.addListener(_listener);
+      SelectionMgr.addFocusCardListener(_listener);
 
       initComponents();
    }

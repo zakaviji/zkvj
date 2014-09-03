@@ -13,24 +13,38 @@ public class Minion implements Serializable
    private int _power;
    private int _health;
    private String _name;
-   private Conjurer _controller;
+   private int _controllerID;
    private Element _element;
    //private Effect _effect;
    
    /**
     * Constructor
     * @param aCard
-    * @param aController
+    * @param aControllerID
     */
-   public Minion(Card aCard, Conjurer aController)
+   public Minion(Card aCard, int aControllerID)
    {
       _card = aCard;
-      _controller = aController;
+      _controllerID = aControllerID;
       _power = _card.getPower();
       _health = _card.getHealth();
       _name = _card.getName();
       _element = _card.getElement();
       //_effect = _card.getEffect();
+   }
+   
+   /**
+    * Copy constructor
+    * @param aMinion
+    */
+   public Minion(Minion aMinion)
+   {
+      _card = aMinion._card;
+      _controllerID = aMinion._controllerID;
+      _power = aMinion._power;
+      _health = aMinion._health;
+      _name = aMinion._name;
+      _element = aMinion._element;
    }
    
    /**
@@ -43,12 +57,12 @@ public class Minion implements Serializable
    }
    
    /**
-    * Returns the controller of this minion.
-    * @return Conjurer
+    * Returns the ID of the controller of this minion.
+    * @return int
     */
-   public Conjurer getController()
+   public int getController()
    {
-      return _controller;
+      return _controllerID;
    }
    
    /**
@@ -89,11 +103,11 @@ public class Minion implements Serializable
    
    /**
     * Sets the controller of this minion
-    * @param aController
+    * @param aControllerID
     */
-   public void setController(Conjurer aController)
+   public void setController(int aControllerID)
    {
-      _controller = aController;
+      _controllerID = aControllerID;
    }
    
    /**

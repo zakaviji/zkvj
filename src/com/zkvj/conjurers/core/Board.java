@@ -345,4 +345,14 @@ public class Board implements Serializable
       
       return tReturn;
    }
+
+   /**
+    * Sets the given Minion at the given position.
+    * @param aPosition
+    * @param aMinion
+    */
+   public void setMinion(Point aPosition, Minion aMinion)
+   {
+      _minions.put(aPosition, aMinion);
+   }
 }

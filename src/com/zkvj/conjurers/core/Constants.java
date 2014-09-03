@@ -31,8 +31,8 @@ public final class Constants
    public static final Color kBACKGROUND_COLOR = Color.GRAY;
    public static final Color kPLAYER_COLOR = Color.WHITE;
    public static final Color kOPPONENT_COLOR = Color.BLACK;
-   public static final Color kPLAYER_SHADE = new Color(255,255,255,50);
-   public static final Color kOPPONENT_SHADE = new Color(0,0,0,50);
+   public static final Color kPLAYER_SHADE = new Color(255,255,255,100);
+   public static final Color kOPPONENT_SHADE = new Color(0,0,0,100);
    public static final Color kTRANSPARENT_COLOR = new Color(0,0,0,0);
    public static final Color kUI_BKGD_COLOR = Color.DARK_GRAY;//new Color(0,0,0,128);
    

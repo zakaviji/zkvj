@@ -16,6 +16,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.zkvj.conjurers.client.Client;
+import com.zkvj.conjurers.client.game.SelectionMgr.PlayedCardListener;
 import com.zkvj.conjurers.core.Conjurer;
 import com.zkvj.conjurers.core.Constants;
 import com.zkvj.conjurers.core.GameData;
@@ -44,6 +45,7 @@ public class PlayerDetailsArea extends JPanel
    private JLabel _deck;
    private JLabel _hand;
    
+   /** listen for when user interacts with health spinner */
    private final ChangeListener _healthListener = new ChangeListener()
    {
       @Override
@@ -72,15 +74,23 @@ public class PlayerDetailsArea extends JPanel
       }
    };
    
+   /** listen for when selected cards are played */
+   private final PlayedCardListener _playedCardListener = new PlayedCardListener()
+   {
+      @Override
+      public void selectedCardPlayed()
+      {
+         updateFromModel();
+      }
+   };
+   
+   /** listen for when game data changes */
    private final GameModelListener _modelListener = new GameModelListener()
    {
       @Override
       public void gameDataChanged()
       {
-         _health.setValue(new Integer(getPlayer().getHealth()));
-         _energy.setText(""+getPlayer().getEnergy());
-         _deck.setText(""+getPlayer().getDeck().size());
-         _hand.setText(""+getPlayer().getHand().size());
+         updateFromModel();
       }
    };
    
@@ -97,6 +107,7 @@ public class PlayerDetailsArea extends JPanel
       _playerID = aPlayerID;
       
       _model.addListener(_modelListener);
+      SelectionMgr.addPlayedCardListener(_playedCardListener);
       
       setBackground(Constants.kBACKGROUND_COLOR);
       initComponents();
@@ -242,5 +253,16 @@ public class PlayerDetailsArea extends JPanel
    public void setIsMyTurn(boolean aMyTurn)
    {
       _health.setEnabled(aMyTurn);
+   }
+   
+   /**
+    * Updates this panel with latest data from model.
+    */
+   public void updateFromModel()
+   {
+      _health.setValue(new Integer(getPlayer().getHealth()));
+      _energy.setText(""+getPlayer().getEnergy());
+      _deck.setText(""+getPlayer().getDeck().size());
+      _hand.setText(""+getPlayer().getHand().size());
    }
 }
