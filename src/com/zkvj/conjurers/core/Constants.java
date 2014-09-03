@@ -68,7 +68,7 @@ public final class Constants
    public static final Point kDEFAULT_PLAYER_B_POS = new Point(2,-4);
    
    /** server port number */
-   public static final String kHOST_NAME = "192.168.1.3";
+   public static final String kHOST_NAME = "localhost";
    public static final int kPORT_NUMBER = 11077;
    
    /** dimensions for login panel */
