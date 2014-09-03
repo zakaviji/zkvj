@@ -87,11 +87,11 @@ public class Launcher extends JFrame
    /**
     * Constructor
     */
-   public Launcher()
+   public Launcher(String aHostName)
    {
       super("Conjurers");
       
-      _client = new Client(Constants.kHOST_NAME, Constants.kPORT_NUMBER);
+      _client = new Client(aHostName, Constants.kPORT_NUMBER);
       _client.addMessageHandler(_messageHandler);
       
       if(!_client.start())
@@ -112,9 +112,15 @@ public class Launcher extends JFrame
    /**
     * main
     */
-   public static void main(String[] args)
+   public static void main(String[] aArgs)
    {
-      Launcher tLauncher = new Launcher();
+      String tHostName = Constants.kHOST_NAME;
+      if(aArgs.length > 0)
+      {
+         tHostName = aArgs[0];
+      }
+      
+      Launcher tLauncher = new Launcher(tHostName);
       tLauncher.pack();
       tLauncher.setVisible(true);
    }
