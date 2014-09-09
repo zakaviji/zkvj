@@ -51,6 +51,10 @@ public final class Constants
    public static final int kMAX_PLAYER_HEALTH = 99;
    public static final int kMIN_PLAYER_HEALTH = 0; 
    
+   /** Bounds on player energy */
+   public static final int kMAX_PLAYER_ENERGY = 99;
+   public static final int kMIN_PLAYER_ENERGY = 0; 
+   
    /** Initial energy of a player */
    public static final int kINITAL_PLAYER_ENERGY = 0;
    

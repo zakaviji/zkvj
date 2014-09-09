@@ -41,35 +41,47 @@ public class PlayerDetailsArea extends JPanel
    
    /** dynamic elements of this panel */
    private JSpinner _health;
-   private JLabel _energy;
+   private JSpinner _energy;
    private JLabel _deck;
    private JLabel _hand;
    
    /** listen for when user interacts with health spinner */
-   private final ChangeListener _healthListener = new ChangeListener()
+   private final ChangeListener _changeListener = new ChangeListener()
    {
       @Override
       public void stateChanged(ChangeEvent aEvent)
       {
+         boolean tSendUpdate = false;
+         
          if(aEvent.getSource() == _health)
          {
             int tHealth = ((SpinnerNumberModel)_health.getModel()).
                      getNumber().intValue();
-            
-            /**
-             * If health has changed, but game model has not changed yet,
-             * then this change was made via our GUI, and we need to send
-             * our updated game data to the server
-             */
+
             if(tHealth != getPlayer().getHealth())
             {
                getPlayer().setHealth(tHealth);
-
-               Message tGameDataMsg = new Message(Type.eGAME_DATA);
-               tGameDataMsg.gameData = new GameData(_model.getGameData());
-               
-               _client.sendMessage(tGameDataMsg);
+               tSendUpdate = true;
             }
+         }
+         else if(aEvent.getSource() == _energy)
+         {
+            int tEnergy = ((SpinnerNumberModel)_energy.getModel()).
+                  getNumber().intValue();
+            
+            if(tEnergy != getPlayer().getEnergy())
+            {
+               getPlayer().setEnergy(tEnergy);
+               tSendUpdate = true;
+            }
+         }
+
+         if(tSendUpdate)
+         {
+            Message tGameDataMsg = new Message(Type.eGAME_DATA);
+            tGameDataMsg.gameData = new GameData(_model.getGameData());
+            
+            _client.sendMessage(tGameDataMsg);
          }
       }
    };
@@ -167,7 +179,7 @@ public class PlayerDetailsArea extends JPanel
       tEditor.getTextField().setEditable(false);
       tEditor.getTextField().setFocusable(false);
       _health.setEditor(tEditor);
-      _health.addChangeListener(_healthListener);
+      _health.addChangeListener(_changeListener);
       tHealthPanel.add(_health);
 
       tConstraints.gridx = 0;
@@ -187,9 +199,17 @@ public class PlayerDetailsArea extends JPanel
       tEnergyLabel.setForeground(Color.WHITE);
       tEnergyPanel.add(tEnergyLabel);
       
-      _energy = new JLabel(""+getPlayer().getEnergy());
-      _energy.setFont(tFont);
-      _energy.setForeground(Color.WHITE);
+      tModel = new SpinnerNumberModel(getPlayer().getEnergy(),
+            Constants.kMIN_PLAYER_ENERGY, Constants.kMAX_PLAYER_ENERGY, 1);
+      _energy = new JSpinner(tModel);
+      tEditor = new JSpinner.NumberEditor(_energy, "##");
+      tEditor.getTextField().setBackground(Constants.kUI_BKGD_COLOR);
+      tEditor.getTextField().setForeground(Color.WHITE);
+      tEditor.getTextField().setFont(tFont);
+      tEditor.getTextField().setEditable(false);
+      tEditor.getTextField().setFocusable(false);
+      _energy.setEditor(tEditor);
+      _energy.addChangeListener(_changeListener);
       tEnergyPanel.add(_energy);
 
       tConstraints.gridx = 0;
@@ -261,7 +281,7 @@ public class PlayerDetailsArea extends JPanel
    public void updateFromModel()
    {
       _health.setValue(new Integer(getPlayer().getHealth()));
-      _energy.setText(""+getPlayer().getEnergy());
+      _energy.setValue(new Integer(getPlayer().getEnergy()));
       _deck.setText(""+getPlayer().getDeck().size());
       _hand.setText(""+getPlayer().getHand().size());
    }

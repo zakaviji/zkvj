@@ -48,7 +48,7 @@ public final class CardDB
       kDB.put(new Integer(4),
             Card.createMinionCard(4,"The King's Bishop",
                                   7,Rarity.eSILVER,
-                                  "Can move up to 3 spaces (in a line). Cannot move laterally.",
+                                  "Can move up to 2 spaces (in a line). Cannot move laterally.",
                                   Element.eNEUTRAL,4,4));
       kDB.put(new Integer(5),
             Card.createMinionCard(5,"The King's Queen",

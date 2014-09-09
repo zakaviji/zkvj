@@ -25,8 +25,8 @@ public final class GameData implements Serializable
       board = new Board();
       
       //assign initial energy to both players
-      updateEnergy(Conjurer.kPLAYER_A);
-      updateEnergy(Conjurer.kPLAYER_B);
+//      updateEnergy(Conjurer.kPLAYER_A);
+//      updateEnergy(Conjurer.kPLAYER_B);
       
       //randomly choose who goes first
       turnPlayerID = (Math.random() < .5)? Conjurer.kPLAYER_A : Conjurer.kPLAYER_B;
@@ -104,7 +104,7 @@ public final class GameData implements Serializable
          turnPlayerID = Conjurer.kPLAYER_A;
       }
       
-      updateEnergy(turnPlayerID);
+      //updateEnergy(turnPlayerID);
       drawCard(turnPlayerID);
    }
    
