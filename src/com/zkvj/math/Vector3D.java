@@ -18,8 +18,11 @@ package com.zkvj.math;
 /**
  * Represents a vector in XYZ-coordinate space
  */
-public class Vector3D
+public final class Vector3D
 {
+   /** components */
+   public final double x, y, z;
+   
    /**
     * Default constructor returns a zero vector
     */
@@ -42,6 +45,24 @@ public class Vector3D
       this.x = x;
       this.y = y;
       this.z = z;
+   }
+   
+   /**
+    * Contructs a new Vector3D from the given array of values.
+    * Array length must be greater than or equal to 3.
+    * @param aValues
+    * @throws IllegalArgumentException
+    */
+   public Vector3D(double[] aValues)
+   {
+      if(aValues.length < 3)
+      {
+         throw new IllegalArgumentException("given array not of proper size");
+      }
+      
+      this.x = aValues[0];
+      this.y = aValues[1];
+      this.z = aValues[2];
    }
 
    /**
@@ -70,6 +91,22 @@ public class Vector3D
                           aV.y/tMag,
                           aV.z/tMag);
    }
+   
+   /**
+    * @return array representation equal to {x,y,z}
+    */
+   public double[] toArray()
+   {
+      return new double[] {x,y,z};
+   }
+   
+   /**
+    * @return array representation equal to {x,y,z,0}
+    */
+   public double[] toArray4()
+   {
+      return new double[] {x,y,z,0};
+   }
 
    /**
     * @return string representation of this object
@@ -79,7 +116,4 @@ public class Vector3D
    {
       return "<" + x + ", " + y + ", " + z + ">";
    }
-
-   /** XYZ vector components */
-   public double x, y, z;
 }

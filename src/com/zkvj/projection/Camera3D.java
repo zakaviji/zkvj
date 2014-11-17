@@ -96,12 +96,22 @@ public class Camera3D
       Vector3D tVz = Vector3D.normalize(_direction);
       Vector3D tVx = Vector3D.normalize(Vector3D.crossProduct(_up, tVz));
       Vector3D tVy = Vector3D.crossProduct(tVz, tVx);
+      
+      //inverse view matrix = camera rotation matrix times camera translation matrix
+      
+      //Matrix.getTranslationMatrix(_position.x, _position.y, _position.z);
 
+//      Matrix tInverseView = new Matrix(4, 4,
+//         new double [][] {{      tVx.x,      tVx.y,      tVx.z, 0},   //col 1
+//                          {      tVy.x,      tVy.y,      tVy.z, 0},   //col 2
+//                          {      tVz.x,      tVz.y,      tVz.z, 0},   //col 3
+//                          {_position.x,_position.y,_position.z, 1}}); //col 4
+      
       Matrix tInverseView = new Matrix(4, 4,
-         new double [][] {{      tVx.x,      tVx.y,      tVx.z, 0},   //col 1
-                          {      tVy.x,      tVy.y,      tVy.z, 0},   //col 2
-                          {      tVz.x,      tVz.y,      tVz.z, 0},   //col 3
-                          {_position.x,_position.y,_position.z, 1}}); //col 4
+         new double [][] {{tVx.x, tVy.x, tVz.x, _position.x},  //col 1
+                          {tVx.y, tVy.y, tVz.y, _position.y},  //col 2
+                          {tVx.z, tVy.z, tVz.z, _position.z},  //col 3
+                          {    0,     0,     0,           1}});//col 4
 
       return Matrix.getInverseMatrix(tInverseView);
    }
@@ -148,28 +158,36 @@ public class Camera3D
       switch (aDir)
       {
          case eDOWN :
-            _direction.z += aRadians;
-            _direction.z = Math.min(_direction.z, Math.PI / 2);
+         {
+            Matrix tRotateX = Matrix.getRotationMatrixX(aRadians);
+            _direction = new Vector3D(tRotateX.multiplyByVector(_direction.toArray4()));
+            _up = new Vector3D(tRotateX.multiplyByVector(_up.toArray4()));
             break;
+         }
          case eUP :
-            _direction.z -= aRadians;
-            _direction.z = Math.max(_direction.z, -Math.PI / 2);
+            Matrix tRotateX = Matrix.getRotationMatrixX(-aRadians);
+            _direction = new Vector3D(tRotateX.multiplyByVector(_direction.toArray4()));
+            _up = new Vector3D(tRotateX.multiplyByVector(_up.toArray4()));
             break;
          case eLEFT :
-            _direction.x += aRadians;
-            _direction.x = Math.min(_direction.x, Math.PI / 2);
+            //_direction.y unchanged
+//            _direction.x += aRadians;
+//            _direction.x = Math.min(_direction.x, Math.PI / 2);
             break;
          case eRIGHT :
-            _direction.x -= aRadians;
-            _direction.x = Math.max(_direction.x, -Math.PI / 2);
+            //_direction.y unchanged
+//            _direction.x -= aRadians;
+//            _direction.x = Math.max(_direction.x, -Math.PI / 2);
             break;
          case eROLL_RIGHT :
-            _direction.y += aRadians;
-            _direction.y = Math.min(_direction.y, Math.PI / 2);
+            //_direction.z unchanged
+//            _direction.y += aRadians;
+//            _direction.y = Math.min(_direction.y, Math.PI / 2);
             break;
          case eROLL_LEFT :
-            _direction.y -= aRadians;
-            _direction.y = Math.max(_direction.y, -Math.PI / 2);
+            //_direction.z unchanged
+//            _direction.y -= aRadians;
+//            _direction.y = Math.max(_direction.y, -Math.PI / 2);
             break;
          default :
             break;

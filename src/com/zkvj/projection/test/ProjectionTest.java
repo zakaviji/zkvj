@@ -117,7 +117,7 @@ public class ProjectionTest extends JPanel
       Matrix tWVP = Matrix.getIdentityMatrix(4);
       
       // multiply by view matrix from camera
-      //tWVP = tWVP.multiplyByMatrix(_camera.getViewMatrix());
+      tWVP = tWVP.multiplyByMatrix(_camera.getViewMatrix());
 
       // multiply by perspective projection matrix
       tWVP = tWVP.multiplyByMatrix(

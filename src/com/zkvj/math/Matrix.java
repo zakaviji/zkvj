@@ -20,7 +20,18 @@ import org.apache.commons.math3.linear.LUDecomposition;
 /*---- JDK imports ----------------------------------------------------------*/
 
 /**
- * General purpose Matrix class
+ * A general purpose Matrix class.
+ * 
+ * Matrices are stored as 2D arrays. The first parameter determines the row,
+ * and the second parameter determines the column. For example, the matrix:
+ * 
+ *  | 1, 2, 3 |
+ *  | 4, 5, 6 |
+ * 
+ * can be initialized using the following 2D array:
+ * 
+ *  double[][] tValues = new double[][] {{1,2,3},
+ *                                       {4,5,6}};
  */
 public class Matrix
 {
@@ -243,10 +254,10 @@ public class Matrix
    public static Matrix getRotationMatrixX(double aRadians)
    {
       double[][] rotationMatrixArray =
-                              {{1.0, 0, 0, 0},
-                               {0, Math.cos(aRadians), -Math.sin(aRadians), 0},
-                               {0, Math.sin(aRadians), Math.cos(aRadians), 0},
-                               {0, 0, 0, 1.0}};
+         {{1.0, 0, 0, 0},
+          {0, Math.cos(aRadians), -Math.sin(aRadians), 0},
+          {0, Math.sin(aRadians), Math.cos(aRadians), 0},
+          {0, 0, 0, 1.0}};
 
       return new Matrix(4, 4, rotationMatrixArray);
    }
@@ -261,10 +272,10 @@ public class Matrix
    public static Matrix getRotationMatrixY(double aRadians)
    {
       double[][] rotationMatrixArray =
-                              {{Math.cos(aRadians), 0, Math.sin(aRadians), 0},
-                               {0, 1, 0, 0},
-                               {-Math.sin(aRadians), 0, Math.cos(aRadians), 0},
-                               {0, 0, 0, 1.0}};
+         {{Math.cos(aRadians), 0, Math.sin(aRadians), 0},
+          {0, 1, 0, 0},
+          {-Math.sin(aRadians), 0, Math.cos(aRadians), 0},
+          {0, 0, 0, 1.0}};
 
       return new Matrix(4, 4, rotationMatrixArray);
    }
@@ -279,10 +290,10 @@ public class Matrix
    public static Matrix getRotationMatrixZ(double aRadians)
    {
       double[][] rotationMatrixArray =
-                              {{Math.cos(aRadians), -Math.sin(aRadians), 0, 0},
-                               {Math.sin(aRadians), Math.cos(aRadians), 0, 0},
-                               {0, 0, 1.0, 0},
-                               {0, 0, 0, 1.0}};
+         {{Math.cos(aRadians), -Math.sin(aRadians), 0, 0},
+          {Math.sin(aRadians), Math.cos(aRadians), 0, 0},
+          {0, 0, 1.0, 0},
+          {0, 0, 0, 1.0}};
 
       return new Matrix(4, 4, rotationMatrixArray);
    }
