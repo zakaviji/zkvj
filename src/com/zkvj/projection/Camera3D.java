@@ -99,7 +99,7 @@ public class Camera3D
       
       //inverse view matrix = camera rotation matrix times camera translation matrix
       
-      //Matrix.getTranslationMatrix(_position.x, _position.y, _position.z);
+      Matrix.getTranslationMatrix(_position.x, _position.y, _position.z);
 
 //      Matrix tInverseView = new Matrix(4, 4,
 //         new double [][] {{      tVx.x,      tVx.y,      tVx.z, 0},   //col 1

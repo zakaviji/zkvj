@@ -101,11 +101,11 @@ public final class Vector3D
    }
    
    /**
-    * @return array representation equal to {x,y,z,0}
+    * @return array representation equal to {x,y,z,1}
     */
    public double[] toArray4()
    {
-      return new double[] {x,y,z,0};
+      return new double[] {x,y,z,1};
    }
 
    /**
