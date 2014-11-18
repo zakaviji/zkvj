@@ -78,14 +78,34 @@ public final class Vector3D
    }
 
    /**
+    * @param aV1
+    * @param aV2
+    * @return dot product of aV1 x aV2
+    */
+   public static double dotProduct(Vector3D aV1, Vector3D aV2)
+   {
+      return (aV1.x * aV2.x + aV2.y * aV2.y + aV1.z * aV2.z);
+   }
+   
+   /**
+    * @param aV1
+    * @param aV2
+    * @return dot product of aV1 x aV2
+    */
+   public static double magnitude(Vector3D aV)
+   {
+      return Math.sqrt(Math.pow(aV.x,2) +
+                       Math.pow(aV.y,2) +
+                       Math.pow(aV.z,2));
+   }
+
+   /**
     * @param aV
     * @return normalization of aV
     */
    public static Vector3D normalize(Vector3D aV)
    {
-      double tMag = Math.sqrt(Math.pow(aV.x,2) +
-                              Math.pow(aV.y,2) +
-                              Math.pow(aV.z,2));
+      double tMag = Vector3D.magnitude(aV);
 
       return new Vector3D(aV.x/tMag, 
                           aV.y/tMag,
