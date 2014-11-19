@@ -34,17 +34,17 @@ public class Projection
     */
    public static Matrix getProjectionMatrix(Camera3D aCam)
    {
-      Matrix tResult = Matrix.getTranslationMatrix(aCam.getPosition().x,
+      Matrix tResult = Matrix.getTranslation(aCam.getPosition().x,
                                                    aCam.getPosition().y,
                                                    aCam.getPosition().z);
       tResult = tResult.multiplyByMatrix(
-         Matrix.getRotationMatrixX(aCam.getDirection().x));
+         Matrix.getRotationX(aCam.getForward().x));
       tResult = tResult.multiplyByMatrix(
-         Matrix.getRotationMatrixY(aCam.getDirection().y));
+         Matrix.getRotationY(aCam.getForward().y));
       tResult = tResult.multiplyByMatrix(
-         Matrix.getRotationMatrixZ(aCam.getDirection().z));
+         Matrix.getRotationZ(aCam.getForward().z));
 
-      tResult = Matrix.getProjectionMatrix(50, 3, 1, 0.75).
+      tResult = Matrix.getProjection(50, 3, 1, 0.75).
                                                      multiplyByMatrix(tResult);
       return tResult;
    }

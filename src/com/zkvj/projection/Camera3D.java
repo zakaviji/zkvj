@@ -38,37 +38,56 @@ public class Camera3D
       eROLL_LEFT,
       eROLL_RIGHT,
    }
+   
+   /** Default unit vectors which define the default camera view */
+   public static final Vector3D kDefaultForward = new Vector3D(0,0,-1);
+   public static final Vector3D kDefaultUp = new Vector3D(0,1,0);
+   public static final Vector3D kDefaultRight = new Vector3D(1,0,0);
+   
+   /** Default camera position */
+   public static final Point3D kDefaultPosition = new Point3D(0,0,0);
+
+   /** Vectors which keep track of the orientation of the camera */
+   private Vector3D _forward;
+   private Vector3D _up;
+   private Vector3D _right;
+
+   /** The camera's position */
+   private Point3D _position;
 
    /**
     * Default constructor.
     */
    public Camera3D()
    {
-      this._position = new Point3D(0, 0, 0);
-      this._direction = new Vector3D(0, 0, 1);
-      this._up = new Vector3D(0, 1, 0);
+      this._position = kDefaultPosition;
+      this._forward = kDefaultForward;
+      this._up = kDefaultUp;
+      this.setRight(kDefaultRight);
    }
 
    /**
     * Constructor
     *
-    * @param aPos - position of the camera in XYZ coordinates
-    * @param aDir - vector representing the direction of the camera
+    * @param aPos - position of the camera in XYZ world coordinates
+    * @param aForward - vector representing which direction the camera sees as "forward"
     * @param aUp - vector representing which direction the camera sees as "up"
+    * @param aRight - vector representing which direction the camera sees as "right"
     */
-   public Camera3D(Point3D aPos, Vector3D aDir, Vector3D aUp)
+   public Camera3D(Point3D aPos, Vector3D aForward, Vector3D aUp, Vector3D aRight)
    {
       this._position = aPos;
-      this._direction = aDir;
+      this._forward = aForward;
       this._up = aUp;
+      this.setRight(aRight);
    }
 
    /**
-    * @return vector representing the direction of the camera
+    * @return vector representing which direction the camera sees as "forward"
     */
-   public Vector3D getDirection()
+   public Vector3D getForward()
    {
-      return _direction;
+      return _forward;
    }
 
    /**
@@ -88,42 +107,65 @@ public class Camera3D
    }
 
    /**
+    * @return vector representing which direction the camera sees as "right"
+    */
+   public Vector3D getRight()
+   {
+      return _right;
+   }
+
+   /**
     * @return the view matrix based on this camera's current
     * position and orientation
     */
    public Matrix getViewMatrix()
    {
-      Vector3D tVz = Vector3D.normalize(_direction);
-      Vector3D tVx = Vector3D.normalize(Vector3D.crossProduct(_up, tVz));
-      Vector3D tVy = Vector3D.crossProduct(tVz, tVx);
+      Vector3D tBack = Vector3D.normalize(new Vector3D(-_forward.x, -_forward.y, -_forward.z));
+      Vector3D tRight = Vector3D.normalize(_right);
+      Vector3D tUp = Vector3D.normalize(_up);
       
-      //inverse view matrix = camera rotation matrix times camera translation matrix
-      
-      Matrix.getTranslationMatrix(_position.x, _position.y, _position.z);
+      //inverse view matrix = camera rotation matrix * camera translation matrix
+//      Matrix tInverseView = Matrix.getRotation(kDefaultDirection, tVz).multiplyByMatrix(
+//            Matrix.getTranslationMatrix(_position.x, _position.y, _position.z));
 
+      Matrix tCamRotation = new Matrix(3, 3,
+            new double [][] {{tRight.x, tRight.y, tRight.z},
+                             {   tUp.x,    tUp.y,    tUp.z},
+                             { tBack.x,  tBack.y,  tBack.z}});
+      
+      Matrix tViewRotation = Matrix.getTranspose(tCamRotation);
+      
+      double[][] tVR = tViewRotation.getValues();
+      
+      double[] tCamPosition = new double [] {_position.x, _position.y, _position.z};
+
+      double[] tVT = tViewRotation.multiplyByScaler(-1).multiplyByVector(tCamPosition);
+      
+      Matrix tViewMatrix = new Matrix(4, 4,
+         new double[][] {{tVR[0][0],tVR[0][1],tVR[0][2],tVT[0]},
+                         {tVR[1][0],tVR[1][1],tVR[1][2],tVT[1]},
+                         {tVR[2][0],tVR[2][1],tVR[2][2],tVT[2]},
+                         {0,0,0,1}});
+      
+      return tViewMatrix;
+      
 //      Matrix tInverseView = new Matrix(4, 4,
-//         new double [][] {{      tVx.x,      tVx.y,      tVx.z, 0},   //col 1
-//                          {      tVy.x,      tVy.y,      tVy.z, 0},   //col 2
-//                          {      tVz.x,      tVz.y,      tVz.z, 0},   //col 3
-//                          {_position.x,_position.y,_position.z, 1}}); //col 4
-      
-      Matrix tInverseView = new Matrix(4, 4,
-         new double [][] {{tVx.x, tVy.x, tVz.x, _position.x},  //col 1
-                          {tVx.y, tVy.y, tVz.y, _position.y},  //col 2
-                          {tVx.z, tVy.z, tVz.z, _position.z},  //col 3
-                          {    0,     0,     0,           1}});//col 4
-
-      return Matrix.getInverseMatrix(tInverseView);
+//         new double [][] {{right.x, right.y, right.z, _position.x},
+//                          {   up.x,    up.y,    up.z, _position.y},
+//                          { back.x,  back.y,  back.z, _position.z},
+//                          {      0,       0,       0,           1}});
+//
+//      return Matrix.getInverseMatrix(tInverseView);
    }
 
    /**
-    * Sets the camera's direction as an XYZ vector
+    * Sets which direction the camera sees as "forward"
     *
-    * @param aDir - the camera's direction as a XYZ vector
+    * @param aForward - Vector3D
     */
-   public final void setDirection(Vector3D aDir)
+   public final void setForward(Vector3D aForward)
    {
-      this._direction = aDir;
+      this._forward = aForward;
    }
 
    /**
@@ -139,7 +181,7 @@ public class Camera3D
    /**
     * Sets which direction the camera sees as "up"
     *
-    * @param aUp - "up" direction vector
+    * @param aUp - Vector3D
     */
    public void setUp(Vector3D aUp)
    {
@@ -147,8 +189,17 @@ public class Camera3D
    }
 
    /**
-    * Method to change the orientation of the camera. It ensures that
-    * _direction.z, _direction.x, and _direction.y stay with the range [-PI/2, PI/2]
+    * Sets which direction the camera sees as "right"
+    * 
+    * @param aRight - Vector3D
+    */
+   public void setRight(Vector3D aRight)
+   {
+      _right = aRight;
+   }
+
+   /**
+    * Convenience method for changing the orientation of the camera.
     *
     * @param aDir - the direction in which to tilt
     * @param aRadians - the amount to tilt
@@ -159,47 +210,73 @@ public class Camera3D
       {
          case eDOWN :
          {
-            Matrix tRotateX = Matrix.getRotationMatrixX(aRadians);
-            _direction = new Vector3D(tRotateX.multiplyByVector(_direction.toArray4()));
-            _up = new Vector3D(tRotateX.multiplyByVector(_up.toArray4()));
+            Matrix tRotation = Matrix.getRotation(_right, aRadians);
+            _forward = new Vector3D(tRotation.multiplyByVector(_forward.toArray4()));
+            _up = new Vector3D(tRotation.multiplyByVector(_up.toArray4()));
             break;
          }
-         case eUP :
-            Matrix tRotateX = Matrix.getRotationMatrixX(-aRadians);
-            _direction = new Vector3D(tRotateX.multiplyByVector(_direction.toArray4()));
-            _up = new Vector3D(tRotateX.multiplyByVector(_up.toArray4()));
-            break;
-         case eLEFT :
-            //_direction.y unchanged
-//            _direction.x += aRadians;
-//            _direction.x = Math.min(_direction.x, Math.PI / 2);
-            break;
-         case eRIGHT :
-            //_direction.y unchanged
-//            _direction.x -= aRadians;
-//            _direction.x = Math.max(_direction.x, -Math.PI / 2);
-            break;
-         case eROLL_RIGHT :
-            //_direction.z unchanged
-//            _direction.y += aRadians;
-//            _direction.y = Math.min(_direction.y, Math.PI / 2);
-            break;
-         case eROLL_LEFT :
-            //_direction.z unchanged
-//            _direction.y -= aRadians;
-//            _direction.y = Math.max(_direction.y, -Math.PI / 2);
-            break;
+//         case eUP :
+//         {
+//            Matrix tRotation = Matrix.getRotation(_right, -aRadians);
+//            _forward = new Vector3D(tRotation.multiplyByVector(_forward.toArray4()));
+//            _up = new Vector3D(tRotation.multiplyByVector(_up.toArray4()));
+//            break;
+//         }
+//         case eRIGHT :
+//         {
+//            Matrix tRotation = Matrix.getRotation(_up, aRadians);
+//            _forward = new Vector3D(tRotation.multiplyByVector(_forward.toArray4()));
+//            _right = new Vector3D(tRotation.multiplyByVector(_right.toArray4()));
+//            break;
+//         }
+//         case eLEFT :
+//         {
+//            Matrix tRotation = Matrix.getRotation(_up, -aRadians);
+//            _forward = new Vector3D(tRotation.multiplyByVector(_forward.toArray4()));
+//            _right = new Vector3D(tRotation.multiplyByVector(_right.toArray4()));
+//            break;
+//         }
+//         case eROLL_RIGHT :
+//         {
+//            Matrix tRotation = Matrix.getRotation(_forward, aRadians);
+//            _up = new Vector3D(tRotation.multiplyByVector(_up.toArray4()));
+//            _right = new Vector3D(tRotation.multiplyByVector(_right.toArray4()));
+//            break;
+//         }
+//         case eROLL_LEFT :
+//         {
+//            Matrix tRotation = Matrix.getRotation(_forward, -aRadians);
+//            _up = new Vector3D(tRotation.multiplyByVector(_up.toArray4()));
+//            _right = new Vector3D(tRotation.multiplyByVector(_right.toArray4()));
+//            break;
+//         }
          default :
+         {
             break;
+         }
       }
+      
+      _forward = Vector3D.normalize(_forward);
+      _up = Vector3D.normalize(_up);
+      _right = Vector3D.normalize(_right);
+      
+      System.out.println(this.toString() + "\n");
    }
+   
+   /**
+    * Returns a string representation of the Camera3D object.
+    * @return String
+    */
+   @Override
+   public String toString()
+   {
+      StringBuilder tOutput = new StringBuilder();
 
-   /** Vector representing the direction the camera is facing */
-   private Vector3D _direction;
-
-   /** Vector representing which direction is "up" for the camera */
-   private Vector3D _up;
-
-   /** The camera's position */
-   private Point3D _position;
+      tOutput.append("position = ").append(_position).
+              append("\nforward = ").append(_forward).
+              append("\nup = ").append(_up).
+              append("\nright = ").append(_right);
+      
+      return tOutput.toString();
+   }
 }

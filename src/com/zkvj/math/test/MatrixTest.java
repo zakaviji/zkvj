@@ -29,6 +29,9 @@ public class MatrixTest
     */
    public static void main(String[] aArgs)
    {  
+      /**
+       * Test matrix multiplication
+       */
 //      Matrix A = new Matrix(3,3, new double[][] {{1,2,3},
 //                                                 {4,5,6},
 //                                                 {7,8,9}});
@@ -38,6 +41,22 @@ public class MatrixTest
 //                                                 {3,2,1}});
 //      
 //      System.out.println(B.multiplyByMatrix(A));
+
+      /**
+       * Test Matrix rotation algorithms
+       */
+      
+      Vector3D tForward = Vector3D.normalize(new Vector3D(0, 0, -1));
+      Vector3D tUp = Vector3D.normalize(new Vector3D(0, 1, 0));
+      Vector3D tRight = Vector3D.normalize(new Vector3D(1, 0, 0));
+      
+      double tAngle = Math.PI / 4;
+      
+      Matrix tRotation = Matrix.getRotation(tRight, tAngle);
+      
+      Vector3D tResult = new Vector3D(tRotation.multiplyByVector(tUp.toArray4()));
+      
+      System.out.println(tResult);
       
 //      Vector3D a = Vector3D.normalize(new Vector3D(1, 1, 1));
 //      Vector3D b = Vector3D.normalize(new Vector3D(1, 2, 3));
@@ -63,7 +82,7 @@ public class MatrixTest
 //                                                       {-v.y, v.x,   0}});
 //         Matrix v_x2 = v_x.multiplyByMatrix(v_x);
 //         
-//         Matrix R = Matrix.getIdentityMatrix(3);
+//         Matrix R = Matrix.getIdentity(3);
 //         R = R.addMatrix(v_x);
 //         R = R.addMatrix(v_x2.multiplyByScaler((1-c)/(s*s)));
 //         
@@ -79,7 +98,7 @@ public class MatrixTest
 //                                                       {   0,   0,   0,   0}});
 //         Matrix v_x2 = v_x.multiplyByMatrix(v_x);
 //         
-//         Matrix R = Matrix.getIdentityMatrix(4);
+//         Matrix R = Matrix.getIdentity(4);
 //         R = R.addMatrix(v_x);
 //         R = R.addMatrix(v_x2.multiplyByScaler((1-c)/(s*s)));
 //         
@@ -87,14 +106,5 @@ public class MatrixTest
 //         Vector3D result = new Vector3D(R.multiplyByVector(a.toArray4()));
 //         System.out.println("R * a = " + result);
 //      }
-      
-      Vector3D tAxis = new Vector3D(1,2,3);
-      double tRadians = Math.PI / 4;
-      
-      
-      double tCos = Math.cos(tRadians);
-      double tSin = Math.sin(tRadians);
-      
-      
    }
 }

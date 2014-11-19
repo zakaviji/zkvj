@@ -138,7 +138,7 @@ public class Matrix
     * @param aOrder
     * @return Matrix
     */
-	public static Matrix getIdentityMatrix(int aOrder)
+	public static Matrix getIdentity(int aOrder)
 	{
 		Matrix tIdentity = new Matrix(aOrder, aOrder);
 		
@@ -157,7 +157,7 @@ public class Matrix
     * @param aM - the matrix for which to find the inverse
     * @return Matrix, or null if aMatrix is not invertible
     */
-   public static Matrix getInverseMatrix(Matrix aM)
+   public static Matrix getInverse(Matrix aM)
    {
       Matrix tReturn = null;
 
@@ -185,10 +185,10 @@ public class Matrix
     * @param aFar - far limit
     * @return Matrix
     */
-   public static Matrix getPerspectiveProjectionMatrix(double aFoV_deg,
-                                                       double aAspectRatio,
-                                                       double aNear,
-                                                       double aFar)
+   public static Matrix getPerspectiveProjection(double aFoV_deg,
+                                                 double aAspectRatio,
+                                                 double aNear,
+                                                 double aFar)
    {
 //      double tSx = (aAspectRatio > 1) ? (1/aAspectRatio) : 1;
 //      double tSy = (aAspectRatio > 1) ? 1 : aAspectRatio;
@@ -231,10 +231,10 @@ public class Matrix
     * @param aHeight
     * @return Matrix
     */
-   public static Matrix getProjectionMatrix(double aFocus,
-                                            double aNear,
-                                            double aWidth,
-                                            double aHeight)
+   public static Matrix getProjection(double aFocus,
+                                      double aNear,
+                                      double aWidth,
+                                      double aHeight)
    {
       double matrix[][] =
                {{(2 * aNear) / aWidth, 0, 0, 0},
@@ -279,7 +279,7 @@ public class Matrix
                                                        {   0,   0,   0,   0}});
          Matrix v_x2 = v_x.multiplyByMatrix(v_x);
          
-         tReturn = Matrix.getIdentityMatrix(4)
+         tReturn = Matrix.getIdentity(4)
                          .addMatrix(v_x)
                          .addMatrix(v_x2.multiplyByScaler((1-c)/(s*s)));
       }
@@ -298,8 +298,30 @@ public class Matrix
    public static Matrix getRotation(Vector3D aAxis, double aRadians)
    {
       Matrix tReturn = null;
-
       
+      Vector3D v = Vector3D.normalize(aAxis);
+      
+      double s = Math.sin(aRadians);
+      if(s == 0)
+      {
+         //TODO handle parallel case
+         
+         System.out.println("error: given vectors are parallel");
+      }
+      else
+      {
+         double c = Math.cos(aRadians);
+         
+         Matrix v_x = new Matrix(4, 4, new double[][] {{   0,-v.z, v.y,   0},
+                                                       { v.z,   0,-v.x,   0},
+                                                       {-v.y, v.x,   0,   0},
+                                                       {   0,   0,   0,   0}});
+         Matrix v_x2 = v_x.multiplyByMatrix(v_x);
+         
+         tReturn = Matrix.getIdentity(4)
+                         .addMatrix(v_x)
+                         .addMatrix(v_x2.multiplyByScaler((1-c)/(s*s)));
+      }
       
       return tReturn;
    }
@@ -311,7 +333,7 @@ public class Matrix
     * @param aRadians
     * @return Matrix
     */
-   public static Matrix getRotationMatrixX(double aRadians)
+   public static Matrix getRotationX(double aRadians)
    {
       double[][] rotationMatrixArray =
          {{1.0, 0, 0, 0},
@@ -329,7 +351,7 @@ public class Matrix
     * @param aRadians
     * @return Matrix
     */
-   public static Matrix getRotationMatrixY(double aRadians)
+   public static Matrix getRotationY(double aRadians)
    {
       double[][] rotationMatrixArray =
          {{Math.cos(aRadians), 0, Math.sin(aRadians), 0},
@@ -347,7 +369,7 @@ public class Matrix
     * @param aRadians
     * @return Matrix
     */
-   public static Matrix getRotationMatrixZ(double aRadians)
+   public static Matrix getRotationZ(double aRadians)
    {
       double[][] rotationMatrixArray =
          {{Math.cos(aRadians), -Math.sin(aRadians), 0, 0},
@@ -376,9 +398,9 @@ public class Matrix
     * @param aScaleZ
     * @return Matrix
     */
-   public static Matrix getScaleMatrix(double aScaleX,
-                                       double aScaleY,
-                                       double aScaleZ)
+   public static Matrix getScale(double aScaleX,
+                                 double aScaleY,
+                                 double aScaleZ)
    {
       double[][] scaleMatrixArray = {{aScaleX, 0, 0, 0},
                                      {0, aScaleY, 0, 0},
@@ -396,7 +418,7 @@ public class Matrix
     * @param aDz
     * @return Matrix
     */
-   public static Matrix getTranslationMatrix(double aDx, double aDy, double aDz)
+   public static Matrix getTranslation(double aDx, double aDy, double aDz)
    {
       double[][] translationMatrixArray = {{1.0, 0  , 0  , aDx},
                                            {0  , 1.0, 0  , aDy},
@@ -404,6 +426,32 @@ public class Matrix
                                            {0  , 0  , 0  , 1.0}};
 
       return new Matrix(4, 4, translationMatrixArray);
+   }
+   
+   /**
+    * Returns the transpose of the given Matrix.
+    * 
+    * @param aM
+    * @return Matrix
+    */
+   public static Matrix getTranspose(Matrix aM)
+   {
+      Matrix tReturn = null;
+
+      if(null != aM)
+      {
+         tReturn = new Matrix(aM.getColumns(), aM.getRows());
+
+         for(int tRow = 1; tRow <= aM.getRows(); tRow++)
+         {
+            for(int tCol = 1; tCol <= aM.getColumns(); tCol++)
+            {
+               tReturn.setValue(tCol, tRow, aM.getValue(tRow, tCol));
+            }
+         }
+      }
+      
+      return tReturn;
    }
 
    /**

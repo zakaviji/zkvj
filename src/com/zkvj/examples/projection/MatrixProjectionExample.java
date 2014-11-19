@@ -70,14 +70,14 @@ public class MatrixProjectionExample
          public void run()
          {
             /* Initialize transform matrix to the identity */
-            Matrix transform = Matrix.getIdentityMatrix(4);
+            Matrix transform = Matrix.getIdentity(4);
 
             /* Add a translation to the overall transformation */
             transform = transform.multiplyByMatrix(
-                                        Matrix.getTranslationMatrix(0, 0, 35));
+                                        Matrix.getTranslation(0, 0, 35));
 
             /* The projection matrix */
-            Matrix projection = Matrix.getProjectionMatrix(50, 3, 1, 0.75);
+            Matrix projection = Matrix.getProjection(50, 3, 1, 0.75);
 
             /* Vertices of the cube */
             double[][] vertices = {{-1,-1,-1, 1},
@@ -109,11 +109,11 @@ public class MatrixProjectionExample
                g.fillRect(0, 0, 400, 300);
 
                transform = transform.multiplyByMatrix(
-                              Matrix.getRotationMatrixX(Math.toRadians(1)));
+                              Matrix.getRotationX(Math.toRadians(1)));
                transform = transform.multiplyByMatrix(
-                              Matrix.getRotationMatrixY(Math.toRadians(1)));
+                              Matrix.getRotationY(Math.toRadians(1)));
                transform = transform.multiplyByMatrix(
-                              Matrix.getRotationMatrixZ(Math.toRadians(1)));
+                              Matrix.getRotationZ(Math.toRadians(1)));
 
                List<Point> points = new ArrayList<Point>();
 
