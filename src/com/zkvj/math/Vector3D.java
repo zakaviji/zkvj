@@ -68,7 +68,7 @@ public final class Vector3D
    /**
     * @param aV1
     * @param aV2
-    * @return cross product of aV1 x aV2
+    * @return cross product aV1 x aV2
     */
    public static Vector3D crossProduct(Vector3D aV1, Vector3D aV2)
    {
@@ -80,7 +80,7 @@ public final class Vector3D
    /**
     * @param aV1
     * @param aV2
-    * @return dot product of aV1 x aV2
+    * @return dot product aV1 * aV2
     */
    public static double dotProduct(Vector3D aV1, Vector3D aV2)
    {
@@ -88,15 +88,14 @@ public final class Vector3D
    }
    
    /**
-    * @param aV1
-    * @param aV2
-    * @return dot product of aV1 x aV2
+    * Returns the magnitude of this vector.
+    * @return double
     */
-   public static double magnitude(Vector3D aV)
+   public double magnitude()
    {
-      return Math.sqrt(Math.pow(aV.x,2) +
-                       Math.pow(aV.y,2) +
-                       Math.pow(aV.z,2));
+      return Math.sqrt(Math.pow(x,2) +
+                       Math.pow(y,2) +
+                       Math.pow(z,2));
    }
 
    /**
@@ -105,11 +104,11 @@ public final class Vector3D
     */
    public static Vector3D normalize(Vector3D aV)
    {
-      double tMag = Vector3D.magnitude(aV);
+      double tMagnitude = aV.magnitude();
 
-      return new Vector3D(aV.x/tMag, 
-                          aV.y/tMag,
-                          aV.z/tMag);
+      return new Vector3D(aV.x/tMagnitude, 
+                          aV.y/tMagnitude,
+                          aV.z/tMagnitude);
    }
    
    /**
@@ -121,11 +120,11 @@ public final class Vector3D
    }
    
    /**
-    * @return array representation equal to {x,y,z,1}
+    * @return array representation equal to {x,y,z,0}
     */
    public double[] toArray4()
    {
-      return new double[] {x,y,z,1};
+      return new double[] {x,y,z,0};
    }
 
    /**

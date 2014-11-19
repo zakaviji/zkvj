@@ -25,8 +25,8 @@ import org.apache.commons.math3.linear.LUDecomposition;
  * Matrices are stored as 2D arrays. The first parameter determines the row,
  * and the second parameter determines the column. For example, the matrix:
  * 
- *  | 1, 2, 3 |
- *  | 4, 5, 6 |
+ *  |  1  2  3  |
+ *  |  4  5  6  |
  * 
  * can be initialized using the following 2D array:
  * 
@@ -52,7 +52,8 @@ public class Matrix
 	}
 
 	/**
-    * Constructor that takes only size parameters
+    * Constructor that takes only size parameters.
+    * Values are defaulted to zero.
     * 
     * @param aRows
     * @param aColumns
@@ -69,7 +70,7 @@ public class Matrix
     * Returns null if the two matrices are not the same size.
     *
     * @param aM
-    * @return
+    * @return sum Matrix, or null
     */
 	public Matrix addMatrix(Matrix aM)
 	{
@@ -104,7 +105,7 @@ public class Matrix
     * to this matrix
     *
     * @param aScalar - the scalar value to be added to this matrix
-    * @return sum of this matrix and the given scalar
+    * @return sum Matrix
     */
 	public Matrix addScaler(double aScalar)
 	{
@@ -124,7 +125,7 @@ public class Matrix
    /**
     * Method to access the number of columns in this matrix
     *
-    * @return
+    * @return int
     */
 	public int getColumns()
 	{
@@ -135,7 +136,7 @@ public class Matrix
     * Returns the identity matrix of the given order
     *
     * @param aOrder
-    * @return
+    * @return Matrix
     */
 	public static Matrix getIdentityMatrix(int aOrder)
 	{
@@ -154,7 +155,7 @@ public class Matrix
     * this method returns null.
     *
     * @param aM - the matrix for which to find the inverse
-    * @return the inverse of aMatrix, or null if aMatrix is not invertible
+    * @return Matrix, or null if aMatrix is not invertible
     */
    public static Matrix getInverseMatrix(Matrix aM)
    {
@@ -182,7 +183,7 @@ public class Matrix
     * @param aAspectRatio - aspect ratio (i.e. 4:3 would be 4/3)
     * @param aNear - near limit
     * @param aFar - far limit
-    * @return projection matrix
+    * @return Matrix
     */
    public static Matrix getPerspectiveProjectionMatrix(double aFoV_deg,
                                                        double aAspectRatio,
@@ -228,7 +229,7 @@ public class Matrix
     * @param aNear
     * @param aWidth
     * @param aHeight
-    * @return
+    * @return Matrix
     */
    public static Matrix getProjectionMatrix(double aFocus,
                                             double aNear,
@@ -245,11 +246,70 @@ public class Matrix
    }
 
    /**
+    * Returns a transformation matrix which performs a rotation which
+    * transforms unit vector A into unit vector B.
+    * 
+    * @param aA - unit vector
+    * @param aB - unit vector
+    * @return Matrix
+    */
+   public static Matrix getRotation(Vector3D aA, Vector3D aB)
+   {
+      Matrix tReturn = null;
+      
+      aA = Vector3D.normalize(aA);
+      aB = Vector3D.normalize(aB);
+      
+      Vector3D v = Vector3D.crossProduct(aA, aB);
+      
+      double s = v.magnitude();
+      if(s == 0)
+      {
+         //TODO handle parallel case
+         
+         System.out.println("error: given vectors are parallel");
+      }
+      else
+      {
+         double c = Vector3D.dotProduct(aA, aB);
+         
+         Matrix v_x = new Matrix(4, 4, new double[][] {{   0,-v.z, v.y,   0},
+                                                       { v.z,   0,-v.x,   0},
+                                                       {-v.y, v.x,   0,   0},
+                                                       {   0,   0,   0,   0}});
+         Matrix v_x2 = v_x.multiplyByMatrix(v_x);
+         
+         tReturn = Matrix.getIdentityMatrix(4)
+                         .addMatrix(v_x)
+                         .addMatrix(v_x2.multiplyByScaler((1-c)/(s*s)));
+      }
+      
+      return tReturn;
+   }
+
+   /**
+    * Returns a transformation matrix which performs a rotation of the given
+    * amount (in Radians) about the given axis.
+    *
+    * @param aAxis - axis of rotation
+    * @param aRadians - angle of rotation in Radians
+    * @return Matrix
+    */
+   public static Matrix getRotation(Vector3D aAxis, double aRadians)
+   {
+      Matrix tReturn = null;
+
+      
+      
+      return tReturn;
+   }
+
+   /**
     * Returns a transformation matrix which performs a rotation about the
     * X-axis
     *
     * @param aRadians
-    * @return
+    * @return Matrix
     */
    public static Matrix getRotationMatrixX(double aRadians)
    {
@@ -267,7 +327,7 @@ public class Matrix
     * Y-axis
     *
     * @param aRadians
-    * @return
+    * @return Matrix
     */
    public static Matrix getRotationMatrixY(double aRadians)
    {
@@ -285,7 +345,7 @@ public class Matrix
     * Z-axis
     *
     * @param aRadians
-    * @return
+    * @return Matrix
     */
    public static Matrix getRotationMatrixZ(double aRadians)
    {
@@ -301,7 +361,7 @@ public class Matrix
    /**
     * Method to access the number of rows in this matrix
     *
-    * @return
+    * @return int
     */
 	public int getRows()
 	{
@@ -314,7 +374,7 @@ public class Matrix
     * @param aScaleX
     * @param aScaleY
     * @param aScaleZ
-    * @return
+    * @return Matrix
     */
    public static Matrix getScaleMatrix(double aScaleX,
                                        double aScaleY,
@@ -334,7 +394,7 @@ public class Matrix
     * @param aDx
     * @param aDy
     * @param aDz
-    * @return
+    * @return Matrix
     */
    public static Matrix getTranslationMatrix(double aDx, double aDy, double aDz)
    {
@@ -351,7 +411,7 @@ public class Matrix
     *
     * @param aRow
     * @param aColumn
-    * @return
+    * @return double
     */
 	public double getValue(int aRow, int aColumn)
 	{
@@ -375,7 +435,7 @@ public class Matrix
    /**
     * Method to access the values of this matrix as a 2D array
     *
-    * @return
+    * @return double[][]
     */
 	public double[][] getValues()
 	{
@@ -383,9 +443,9 @@ public class Matrix
 	}
 
    /**
-    * Determines whether or not this matrix is invertible.
+    * Returns true if this matrix is invertible.
     *
-    * @return true if this matrix is invertible
+    * @return boolean
     */
    public boolean isInvertible()
    {
@@ -408,7 +468,7 @@ public class Matrix
     * Returns the result of multiplying this matrix by the given matrix
     *
     * @param aM - the matrix to multiply with this matrix
-    * @return product of this matrix and aM
+    * @return product Matrix
     */
 	public Matrix multiplyByMatrix(Matrix aM)
 	{
@@ -453,7 +513,7 @@ public class Matrix
     * Returns the result of multiplying this matrix by a scalar value
     *
     * @param aScalar - the scalar value to multiply against this matrix
-    * @return product of this matrix and the given scalar
+    * @return product Matrix
     */
 	public Matrix multiplyByScaler(double aScalar)
 	{
@@ -474,7 +534,7 @@ public class Matrix
     * Returns the vector result of multiplying this matrix by a given vector
     *
     * @param aVector
-    * @return
+    * @return double[]
     */
 	public double[] multiplyByVector(double[] aVector)
 	{
@@ -552,7 +612,7 @@ public class Matrix
    /**
     * Returns a string representation of this matrix
     *
-    * @return
+    * @return String
     */
    @Override
 	public String toString()
